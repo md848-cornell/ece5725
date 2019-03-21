@@ -1,0 +1,5 @@
+#!/bin/bash
+
+
+/home/pi/labs/lab1/run_with_fifo &
+python /home/pi/labs/lab1/video_control.py &

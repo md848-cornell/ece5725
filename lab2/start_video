@@ -1,0 +1,3 @@
+#!/bin/bash
+sudo SDL_VIDEODRIVER=fbcon SDL_FBDEV=/dev/fb1 mplayer -slave -input file=/home/pi/labs/lab2/video_fifo -vo sdl -framedrop bigbuckbunny320p.mp4 &
+python /home/pi/labs/lab2/more_video_control.py &

@@ -1,0 +1,3 @@
+#!/bin/bash
+sudo rmmod stmpe_ts
+sudo modprobe stmpe_ts
