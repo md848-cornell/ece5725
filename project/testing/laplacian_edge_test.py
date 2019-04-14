@@ -17,15 +17,13 @@ while(True):
 
     # Our operations on the frame come here
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    frame = cv2.blur(frame,(5,5))
     # edge detection
-    frame = cv2.Laplacian(frame, cv2.CV_64F)
-    frame = cv2.bitwise_not(frame)
+    frame = cv2.Laplacian(frame, cv2.CV_32F)
     # low pass filter
-    k = 1
-    kernel = np.ones((k,k),np.float32)/(k*k)
-    frame = cv2.filter2D(frame,-1,kernel)
     # median filter
-    frame = cv2.medianBlur(np.float32(frame), 5)
+    frame = cv2.medianBlur(frame, 5)
+    frame = cv2.medianBlur(frame, 3)
     # Display the resulting frame
     cv2.imshow('frame',frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):

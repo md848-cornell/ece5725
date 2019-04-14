@@ -26,16 +26,15 @@ while(True):
     sobely = cv2.Sobel(frame, cv2.CV_32F, 0, 1, ksize=1)
     mag = np.power(np.power(sobelx,2) + np.power(sobely,2),1/2)
     
-    # Display the resulting frame
-    frame = mag 
-    maxi = np.amax(frame)
-    mini = np.amin(frame)
-    tnp = maxi * 0.1
-    
-    frame = cv2.medianBlur(frame,3)
+    # processing on edge image
+    frame = cv2.blur(mag,(5,5))
+    #frame = cv2.medianBlur(frame,5)
 
-    #frame = ((mini+tnp) < frame) & (frame < (maxi-tnp))
-    #frame = np.float32(frame)
+    # thresholding
+    mm = (np.amax(frame) * 0.05) 
+    frame = (mm < frame) 
+    frame = np.float32(frame)
+    # display frame
     cv2.imshow('frame',frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
