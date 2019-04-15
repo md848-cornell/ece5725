@@ -17,10 +17,10 @@ while(True):
     
     # Our operations on the frame come here
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    #frame = np.float32(frame)
-    frame = cv2.blur(frame,(3,3))
-    #frame = cv2.blur(frame,(21,21))
     frame = cv2.medianBlur(frame,5)
+    #frame = np.float32(frame)
+    frame = cv2.blur(frame,(7,7))
+    #frame = cv2.blur(frame,(21,21))
     
     sobelx = cv2.Sobel(frame, cv2.CV_32F, 1, 0, ksize=1)
     sobely = cv2.Sobel(frame, cv2.CV_32F, 0, 1, ksize=1)
@@ -32,8 +32,8 @@ while(True):
     mini = np.amin(frame)
     tnp = maxi * 0.1
     
-    frame = cv2.medianBlur(frame,3)
-
+    #frame = cv2.medianBlur(frame,3)
+    frame = cv2.blur(frame, (3,3))
     #frame = ((mini+tnp) < frame) & (frame < (maxi-tnp))
     #frame = np.float32(frame)
     cv2.imshow('frame',frame)

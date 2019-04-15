@@ -17,9 +17,8 @@ while(True):
     
     # Our operations on the frame come here
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    #frame = np.float32(frame)
+
     frame = cv2.blur(frame,(3,3))
-    #frame = cv2.blur(frame,(21,21))
     frame = cv2.medianBlur(frame,5)
     
     sobelx = cv2.Sobel(frame, cv2.CV_32F, 1, 0, ksize=1)
@@ -27,7 +26,7 @@ while(True):
     mag = np.power(np.power(sobelx,2) + np.power(sobely,2),1/2)
     
     # processing on edge image
-    frame = cv2.blur(mag,(5,5))
+    frame = cv2.blur(mag,(3,3))
     #frame = cv2.medianBlur(frame,5)
 
     # thresholding

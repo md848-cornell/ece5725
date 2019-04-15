@@ -23,7 +23,10 @@ while(True):
     # low pass filter
     # median filter
     frame = cv2.medianBlur(frame, 5)
-    frame = cv2.medianBlur(frame, 3)
+    frame = cv2.medianBlur(frame, 5)
+    frame = cv2.medianBlur(frame, 1)
+    frame = cv2.blur(frame,(7,7))
+    frame = frame * (frame > (np.amax(frame)*0.1))
     # Display the resulting frame
     cv2.imshow('frame',frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
