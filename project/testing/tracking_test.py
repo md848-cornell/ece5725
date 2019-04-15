@@ -180,7 +180,7 @@ def track(frame, aves):
 
 def segment_ave(frame,x,y):
     #thresh = 5 
-    thresh0 = 70
+    thresh0 = 60
     thresh1 = 5
 
     x0 = x
