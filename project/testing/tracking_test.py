@@ -222,7 +222,7 @@ def main():
     while(True):
         # Capture frame-by-frame
         ret, frame = cap.read()
-
+        
         wk = cv2.waitKey(1)
         if wk & 0xFF == ord('t'):
             frame = track(frame, aves)

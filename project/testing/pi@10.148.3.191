@@ -33,6 +33,8 @@ while(True):
     mm = (np.amax(frame) * 0.04) 
     frame = (mm < frame) 
     frame = np.float32(frame)
+
+
     # display frame
     cv2.imshow('frame',frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
