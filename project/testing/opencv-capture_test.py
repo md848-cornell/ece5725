@@ -18,7 +18,7 @@ while(True):
     # Our operations on the frame come here
     #frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    frame = frame[:,:,2]
+    frame = frame[:,:,0]
     # Display the resulting frame
     cv2.imshow('frame',frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
