@@ -51,8 +51,8 @@ while(True):
     frame = (mm < frame)
     frame = np.float32(frame)
 
-    kernel = np.ones((3,3),np.float32)
-    frame = cv2.erode(frame,kernel,iterations = 1)
+    #kernel = np.ones((3,3),np.uint8)
+    #frame = cv2.erode(frame,kernel,iterations = 1)
 
     # display frame
     cv2.imshow('frame',frame)

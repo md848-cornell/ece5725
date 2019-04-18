@@ -9,6 +9,35 @@
 import numpy as np
 import scipy.signal as sp
 import cv2
+import matplotlib.pyplot as plt
+
+def draw_box(img, y, x, h=12,w=12, color=1):
+    out = np.copy(img)
+    for r in range(-1*h,h):
+        yi = y+r
+        if yi >=0 and yi < img.shape[0]:
+            for c in range(-1*w,w):
+                xi = x+c
+                if xi >= 0 and xi < img.shape[1]:
+                    out[yi,xi] = color
+    return out
+
+def com(img):
+    h = img.shape[0]
+    w = img.shape[1]
+    mx = np.amax(img)
+    mn = np.amin(img)
+    yc = 0
+    xc = 0
+    total = 0
+    for y in range(h):
+        for x in range(w):
+            v = img[y,x]
+            if v > 0:
+                yc += y
+                xc += x
+                total += 1
+    return int(yc/total), int(xc/total)
 
 cap = cv2.VideoCapture(0)
 
@@ -33,34 +62,54 @@ while(True):
     elif wk & 0xFF == ord('w'):
         ret, frame = cap.read()
         left = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        left = cv2.resize(left,(left.shape[0]//4,left.shape[1]//4),interpolation=cv2.INTER_AREA)
-        cv2.imshow('frame',cv2.resize(left,(left.shape[0]*4,left.shape[1]*4),interpolation=cv2.INTER_AREA))
+        cv2.imshow('frame',left)
         print('captured left')
     elif wk & 0xFF == ord('e'):
         ret, frame = cap.read()
         right = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        right = cv2.resize(right,(right.shape[0]//4,right.shape[1]//4),interpolation=cv2.INTER_AREA)
-        cv2.imshow('frame',cv2.resize(right,(right.shape[0]*4,right.shape[1]*4),interpolation=cv2.INTER_AREA))
+        cv2.imshow('frame',right)
         print('captured right')
     elif wk & 0xFF == ord('r'):
-        print("starting convolution")
-        left = cv2.blur(left, (3,3))
-        right = cv2.blur(right, (3,3))
-        c = sp.convolve2d(left,right)
-        c = cv2.blur(c, (19,19))
-        print("showing convolution")
-        i = np.unravel_index(c.argmax(), c.shape)
-        print("max:", i)
-        b = left + right
-        b = b / np.amax(b)
-        b = cv2.resize(b,(b.shape[0]*4,b.shape[1]*4),interpolation=cv2.INTER_AREA)
-        for x in range(-30,30):
-            for y in range(-30,30):
-                xx = i[0]+x
-                yy = i[1]+y
-                if xx > 0 and xx < b.shape[0] and yy > 0 and yy < b.shape[1]:
-                    b[xx,yy] = 0
-        cv2.imshow('frame',b)
+        print("starting depth map")
+
+        window_size = 5
+        min_disp = 32
+        num_disp = 112 - min_disp
+        
+        stereo = cv2.StereoSGBM_create(
+            minDisparity = min_disp,
+            numDisparities = num_disp,
+            #uniquenessRatio = 10,
+            #speckleWindowSize = 100,
+            #speckleRange = 32,
+            #disp12MaxDiff = 1,
+            #P1 = 8*3*window_size**2,
+            #P2 = 32*3*window_size**2,
+            )
+
+        disparity = stereo.compute(left,right)
+        disparity = disparity.astype(np.float32)
+        disparity = (disparity-min_disp)/num_disp
+
+        disparity = disparity - np.amin(disparity)
+        disparity = disparity/np.amax(disparity)
+        disparity = cv2.blur(disparity,(7,7))
+        disp = np.zeros(disparity.shape)
+        disp[(disparity > 0.7)] = disparity[(disparity > 0.7)]
+        disparity = disp
+
+        yc,xc = com(disparity)
+        print(yc,xc)
+
+        print("showing depth map")
+        if False:
+            cv2.imshow('frame',disparity)
+        elif True:
+            f = draw_box(disparity,yc,xc,h=36,w=36,color=1)
+            cv2.imshow('frame',f)
+        else:
+            f = draw_box(right,yc,xc,h=36,w=36,color=0)
+            cv2.imshow('frame',f)
 
 # When everything done, release the capture
 cap.release()

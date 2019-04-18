@@ -88,7 +88,7 @@ def process(frame):
     saturation = edges(frame[:,:,1], 0.12)
     value = edges(frame[:,:,2], 0.08)
 
-    f = hue*0.0 + saturation*1.0 + value*1.0
+    f = hue*1.0 + saturation*0.4 + value*0.4
 
     frame = f / np.amax(f)
     mm = (np.amax(frame) * 0.1)
