@@ -84,20 +84,20 @@ def process(frame):
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     f = np.zeros((frame.shape[0],frame.shape[1]))
 
-    hue = edges(frame[:,:,0], 0.05)
-    saturation = edges(frame[:,:,1], 0.11)
-    value = edges(frame[:,:,2], 0.11)
+    hue = edges(frame[:,:,0], 0.03)
+    saturation = edges(frame[:,:,1], 0.12)
+    value = edges(frame[:,:,2], 0.08)
 
-    f = hue*1.0 + saturation*3.0 + value*3.0
+    f = hue*0.0 + saturation*1.0 + value*1.0
 
     frame = f / np.amax(f)
     mm = (np.amax(frame) * 0.1)
     frame = (mm < frame)
     frame = np.float32(frame)
 
-    kernel = np.ones((3,3),np.float32)
-    frame = cv2.erode(frame,kernel,iterations=1)
-
+    #kernel = np.ones((3,3),np.float32)
+    #frame = cv2.erode(frame,kernel,iterations=1)
+    
     return frame
 
 def main():
@@ -111,7 +111,20 @@ def main():
         
         if wk & 0xFF == ord('q'):
             break
+
         elif wk & 0xFF == ord('e'):
+            # Capture frame-by-frame
+            ret, frame = cap.read()
+
+            frame = process(frame)
+
+            if frame[frame.shape[0]//2,frame.shape[1]//2] == 1:
+                frame[frame.shape[0]//2,frame.shape[1]//2] = 0
+            frame = segmentate(frame,frame.shape[0]//2, frame.shape[1]//2)
+
+            cv2.imshow('frame',frame)
+
+        else:
             # Capture frame-by-frame
             ret, frame = cap.read()
 
@@ -122,19 +135,6 @@ def main():
                     w = frame.shape[0]
                     h = frame.shape[1]
                     frame[w//2+x,h//2+y] = 0.5
-
-            cv2.imshow('frame',frame)
-
-        elif wk & 0xFF == ord('w'):
-            # Capture frame-by-frame
-            ret, frame = cap.read()
-
-            frame = process(frame)
-
-            if frame[frame.shape[0]//2,frame.shape[1]//2] == 1:
-                frame[frame.shape[0]//2,frame.shape[1]//2] = 0
-            frame = segmentate(frame,frame.shape[0]//2, frame.shape[1]//2)
-
             cv2.imshow('frame',frame)
 
     
