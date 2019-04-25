@@ -15,10 +15,10 @@ import numpy as np
 
 # initialize the camera and grab a reference to the raw camera capture
 camera = PiCamera()
-camera.resolution = (160*3, 120*3)
+camera.resolution = (160*2, 120*2)
 camera.framerate = 30
 camera.exposure_mode = 'off'
-rawCapture = PiRGBArray(camera, size=(160*3, 120*3))
+rawCapture = PiRGBArray(camera, size=(160*2, 120*2))
 
 # allow the camera to warmup
 time.sleep(0.1)
@@ -91,7 +91,7 @@ def center_of_mass(img):
 
 
 bg = None
-matchContour = None
+matchContour = [None] * 10
 nbg = 1
 
 for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
@@ -152,11 +152,19 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
         f = cv2.drawContours(f, [hull], 0, (0,0,255), 1)
         dists = []
         
-        if wk & 0xFF == ord('c'):
-            matchContour = np.copy(hull)
+        if chr(wk & 0xFF) in '0123456789':
+            matchContour[int(chr(wk&0xFF))] = np.copy(hull)
         if type(hull) != type(None):
-            print(cv2.matchShapes(hull,matchContour,1,0.0))
-        
+            matches = []
+            for mc in range(len(matchContour)):
+                if type(matchContour[mc]) != type(None):
+                    matches += [cv2.matchShapes(hull,matchContour[mc],cv2.CONTOURS_MATCH_I1,0)]
+            if len(matches) > 0:
+                ind = np.argmin(matches)
+                print(ind+1)
+            
+            
+            
         if defects != None and len(defects) > 0:
             for defect in defects:
                 fa = defect[0,2]
