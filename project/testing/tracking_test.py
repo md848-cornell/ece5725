@@ -6,9 +6,21 @@
 # https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_gui/py_video_display/py_video_display.html
 
 
-import numpy as np
+from picamera.array import PiRGBArray
+from picamera import PiCamera
+import time
 import cv2
+import numpy as np
 
+def cam_setup():
+    # initialize the camera and grab a reference to the raw camera capture
+    camera = PiCamera()
+    camera.resolution = (640, 480)
+    camera.framerate = 24
+    rawCapture = PiRGBArray(camera, size=(640, 480))
+
+    # allow the camera to warmup
+    time.sleep(0.1)
 
 def in_bounds(frame,x,y):
     if (x >= frame.shape[0]) or (y >= frame.shape[1]) or (x < 0) or (y < 0):

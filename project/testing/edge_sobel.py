@@ -5,12 +5,22 @@
 # source:
 # https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_gui/py_video_display/py_video_display.html
 
-
-import numpy as np
+from picamera.array import PiRGBArray
+from picamera import PiCamera
+import time
 import cv2
+import numpy as np
+
+# initialize the camera and grab a reference to the raw camera capture
+camera = PiCamera()
+camera.resolution = (640, 480)
+camera.framerate = 24
+rawCapture = PiRGBArray(camera, size=(640, 480))
+
+# allow the camera to warmup
+time.sleep(0.1)
 
 def edges(frame, thresh):
-
     sobelx = cv2.Sobel(frame, cv2.CV_32F, 1, 0, ksize=1)
     sobely = cv2.Sobel(frame, cv2.CV_32F, 0, 1, ksize=1)
     mag = np.power(np.power(sobelx,2) + np.power(sobely,2),1/2)
@@ -25,12 +35,7 @@ def edges(frame, thresh):
     frame = np.float32(frame)
     return frame
 
-
-cap = cv2.VideoCapture(0)
-
-while(True):
-    # Capture frame-by-frame
-    ret, frame = cap.read()
+def sobel(frame):
 
     frame = cv2.blur(frame,(11,11))
     #frame = cv2.medianBlur(frame,5)
@@ -50,12 +55,27 @@ while(True):
     mm = (np.amax(frame) * 0.1)
     frame = (mm < frame)
     frame = np.float32(frame)
-
+    
     #kernel = np.ones((3,3),np.uint8)
     #frame = cv2.erode(frame,kernel,iterations = 1)
+    
+    return frame
 
+        
+        
+for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
+    # Capture frame-by-frame
+    frame = frame.array
+    
+    #frame_filt = sobel(frame)
+    
     # display frame
+    #cv2.imshow('frame',frame_filt)
     cv2.imshow('frame',frame)
+    
+    # clear the stream in preparation for the next frame
+    rawCapture.truncate(0)
+        
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
