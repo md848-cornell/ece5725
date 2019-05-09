@@ -14,6 +14,8 @@ import numpy as np
 import os # for OS calls
 import pygame # Import pygame graphics library
 
+resScale = 4
+
 # setup pygame drivers and screen
 if True:
     os.putenv('SDL_VIDEODRIVER', 'fbcon') # Display on piTFT
@@ -24,10 +26,10 @@ if True:
 
 # initialize the camera and grab a reference to the raw camera capture
 camera = PiCamera()
-camera.resolution = (160*3, 120*3)
+camera.resolution = (160*resScale, 120*resScale)
 camera.framerate = 30
 camera.exposure_mode = 'off'
-rawCapture = PiRGBArray(camera, size=(160*3, 120*3))
+rawCapture = PiRGBArray(camera, size=(160*resScale, 120*resScale))
 
 # allow the camera to warmup
 time.sleep(0.1)
@@ -236,9 +238,9 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
 
 
     screen.fill(black) # Erase the Work space
-    screen.blit(ball, [cx*(width/(160*3))-20,cy/2*(width/(120*3))-20]) # Combine Ball surface with workspace surface
+    screen.blit(ball, [cx*(width/(160*resScale))-20,cy/2*(width/(120*resScale))-20]) # Combine Ball surface with workspace surface
     pygame.display.flip() # display workspace on screen
-    clock.tick(15)
+    clock.tick(60)
     
 
 # When everything done, release the capture
