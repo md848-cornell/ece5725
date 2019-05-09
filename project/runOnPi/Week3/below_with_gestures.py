@@ -234,11 +234,9 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
     cv2.imshow('frame',f)
     rawCapture.truncate(0)
     
-    #ballrect = ballrect.move([2, 2])
-
 
     screen.fill(black) # Erase the Work space
-    screen.blit(ball, [cx*(width/(160*resScale))-20,cy/2*(width/(120*resScale))-20]) # Combine Ball surface with workspace surface
+    screen.blit(ball, [cx*(width/(160*resScale))-20,((abs(cy))/2*(height/(120*resScale))-20)*3]) # Combine Ball surface with workspace surface
     pygame.display.flip() # display workspace on screen
     clock.tick(60)
     
