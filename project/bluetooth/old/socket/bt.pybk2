@@ -1,0 +1,67 @@
+"""
+A simple Python script to receive messages from a client over
+Bluetooth using Python sockets (with Python 3.3 or above).
+"""
+
+import socket
+import os
+
+
+
+class bluetooth():
+
+    def __system_setup_bl():
+        os.system("hciconfig hci0 class 0x002580")
+        os.system("hciconfig hci0 name Pi\ Mouse\ Emulator")
+        # Make device discoverable
+        os.system("hciconfig hci0 piscan")
+
+
+    def __setup_socket(self, port):
+        self.hostMACAddress = 'B8:27:EB:39:30:66' # The MAC address on the server.
+        backlog = 1
+        s = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
+        s.bind((self.hostMACAddress,port))
+        s.listen(backlog)
+        client = None
+        try:
+            print('waiting for connection')
+            client, address = s.accept()
+            print('accepted connection')
+        except Exception as e: 
+            print("Error opening socket:",e)
+            s.close()
+        return s, client, address
+
+
+    def __init__(self):
+        #self.__system_setup_ble()
+        self.csock, self.cclient, self.caddress = self.__setup_socket(17)
+
+    def send(self,data):
+        self.cclient.send(data)
+
+    def close(self):
+        self.cclient.close()
+        self.csock.close()
+
+    def test_data_text(self):
+        size = 1024
+        try:
+            while True:
+                data = self.cclient.recv(size)
+                if data:
+                    print(data)
+                    self.cclient.send(data)
+        except Exception as e:
+            print('closing socket:',e)
+            self.close()
+
+
+def main():
+    b = bluetooth()
+    b.test_data_text()
+
+if __name__ == '__main__':
+    main()
+

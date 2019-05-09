@@ -5,13 +5,22 @@
 # source:
 # https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_gui/py_video_display/py_video_display.html
 
-
 # import the necessary packages
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 import time
 import cv2
 import numpy as np
+import os # for OS calls
+import pygame # Import pygame graphics library
+
+# setup pygame drivers and screen
+if True:
+    os.putenv('SDL_VIDEODRIVER', 'fbcon') # Display on piTFT
+    os.putenv('SDL_FBDEV', '/dev/fb1') 
+    os.putenv('SDL_MOUSEDRV', 'TSLIB') # Track mouse clicks on piTFT
+    os.putenv('SDL_MOUSEDEV', '/dev/input/touchscreen')
+
 
 # initialize the camera and grab a reference to the raw camera capture
 camera = PiCamera()
@@ -29,6 +38,22 @@ frameCount = 0
 thrs = 0.09
 et = 0
 
+pygame.init()
+
+clock = pygame.time.Clock()
+
+
+size = width, height = 320, 240
+black = 0, 0, 0
+screen = pygame.display.set_mode(size)
+
+speed = [2,2]
+ball = pygame.image.load("sprite.png")
+ballrect = ball.get_rect()
+
+startTime = time.time()
+
+
 
 def edges(frame, thresh):
 
@@ -38,7 +63,7 @@ def edges(frame, thresh):
 
     # processing on edge image
     frame = cv2.blur(mag,(3,3))
-    #frame = cv2.medianBlur(frame,5)
+    #frame = cv2.medianBlur(frame5)
 
     # thresholding
     mm = (np.amax(frame) * thresh)
@@ -81,39 +106,39 @@ def center_of_mass(img):
         xx = int(xc/total)
 
     return yy,xx
-    
-
-
-
-
 
 ### start of script
-
 
 bg = None
 matchContour = [None] * 10
 nbg = 1
-
+Start = 1
 for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
+    
     wk = cv2.waitKey(1)
     frame = frame.array
     # Capture frame-by-frame
     #ret, frame = cap.read()
+    
     original = np.copy(frame)
+    
     frame = cv2.blur(frame,(5,5))
     #frame = cv2.medianBlur(frame,5)
 
     # Our operations on the frame come here
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     #f = np.zeros((frame.shape[0],frame.shape[1]))
-
+    
     thrs = 0.09
 
     frame = edges(frame, thrs)
 
     frame = (frame - np.amin(frame))/(np.amax(frame)-np.amin(frame)) 
     frame[frame < 0.1] = 0
-
+    if Start:
+        bg = frame 
+        nbg = 1
+        Start = 0
     if wk & 0xFF == ord('b'):
         bg = frame 
         nbg = 1
@@ -158,14 +183,14 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
             matches = []
             for mc in range(len(matchContour)):
                 if type(matchContour[mc]) != type(None):
-                    matches += [cv2.matchShapes(hull,matchContour[mc],cv2.CONTOURS_MATCH_I1,0)]
+                    matches += [cv2.matchShapes(hull,matchContour[mc],cv2.CONTOURS_MATCH_I2,0)]
             if len(matches) > 0:
                 ind = np.argmin(matches)
                 print(ind+1)
             
             
             
-        if defects != None and len(defects) > 0:
+        if type(defects) != type(None) and len(defects) > 0:
             for defect in defects:
                 fa = defect[0,2]
                 dist = defect[0,3]
@@ -183,20 +208,28 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
     else:
         cx = int(M['m10']/M['m00'])
         cy = int(M['m01']/M['m00'])
-
+        print(cx/2)
+        print(" ")
+        print(cy/2)
     try:
         (fex,fey),(feMA,fema),angle = cv2.fitEllipse(frame)
         print(angle)
     except:
         pass
 
-    #f = draw_box(f,cy,cx,color=255)
-
     # display frame
     f = cv2.resize(f, (160*4,120*4), fx=0, fy=0, interpolation = cv2.INTER_NEAREST)
     cv2.imshow('frame',f)
     rawCapture.truncate(0)
+    
+    #ballrect = ballrect.move([2, 2])
 
+
+    screen.fill(black) # Erase the Work space
+    screen.blit(ball, [cx/2,cy/2]) # Combine Ball surface with workspace surface
+    pygame.display.flip() # display workspace on screen
+    clock.tick(30)
+    
 
 # When everything done, release the capture
 cap.release()

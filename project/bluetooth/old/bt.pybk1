@@ -1,0 +1,185 @@
+#!/usr/bin/python3
+
+import os
+import sys
+import bluetooth
+from bluetooth import *
+import dbus
+import time
+
+
+
+'''
+resources:
+
+    - device codes:
+    http://www.de.netbsd.org/docs/guide/en/chap-bluetooth.html#chap-bluetooth-hid-keyboard
+
+    - python code for BT
+    https://github.com/gh4ck3r/hid2bt/blob/master/PiTooth.py
+
+    - Bluetooth code user guide
+    https://cdn.sparkfun.com/datasheets/Wireless/Bluetooth/RN-HID-User-Guide-v1.0r.pdf
+
+    - mouse bl codes
+    https://learn.adafruit.com/introducing-bluefruit-ez-key-diy-bluetooth-hid-keyboard/sending-keys-via-serial
+
+
+Before running this script:
+
+
+ # Set the device class to a keyboard and set the name
+ for keyboard:
+    hciconfig hci0 class 0x002540
+ for mouse:
+    hciconfig hci0 class 0x002580
+ hciconfig hci0 name Raspberry\ Pi
+ # Make device discoverable
+ hciconfig hci0 piscan
+
+
+'''
+
+HOST = 0 # BT Mac address
+PORT = 1 # Bluetooth Port Number
+
+# Define the ports we'll use
+P_CTRL = 17
+P_INTR = 19
+
+
+class Bluetooth:
+    HOST = 0 # BT Mac address
+    PORT = 1 # Bluetooth Port Number
+
+    # Define the ports we'll use
+    P_CTRL = 17
+    P_INTR = 19
+
+    def __init__(self):
+        # Set the device class to a keyboard and set the name
+        if False:
+            os.system("hciconfig hci0 class 0x002540")
+            os.system("hciconfig hci0 name Raspberry\ Pi")
+            # Make device discoverable
+            os.system("hciconfig hci0 piscan")
+
+        # Define our two server sockets for communication
+        self.scontrol = BluetoothSocket(L2CAP)
+        self.sinterrupt = BluetoothSocket(L2CAP)
+        
+        # Bind these sockets to a port
+        self.scontrol.bind(("", Bluetooth.P_CTRL))
+        self.sinterrupt.bind(("", Bluetooth.P_INTR))
+        
+        # Set up dbus for advertising the service record
+        self.bus = dbus.SystemBus()
+        try:
+            if False: # original code for older version of pybluez
+                self.manager = dbus.Interface(self.bus.get_object("org.bluez", "/"),
+                                                                  "org.bluez.Manager")
+                adapter_path = self.manager.DefaultAdapter()
+                self.service = dbus.Interface(self.bus.get_object("org.bluez", adapter_path),
+                                                              "org.bluez.Service")
+            else:
+                SERVICE_NAME = "org.bluez"
+                OBJECT_IFACE =  "org.freedesktop.DBus.ObjectManager"
+                ADAPTER_IFACE = SERVICE_NAME + ".Adapter1"
+                DEVICE_IFACE = SERVICE_NAME + ".Device1"
+                PROPERTIES_IFACE = "org.freedesktop.DBus.Properties"
+                bus = dbus.SystemBus()
+                manager = dbus.Interface(bus.get_object("org.bluez", "/"), "org.freedesktop.DBus.ObjectManager")
+                objects = manager.GetManagedObjects()
+                for path, ifaces in objects.items():
+                    adapter = ifaces.get(ADAPTER_IFACE)
+                    if adapter is None:
+                        continue
+                    obj = bus.get_object(SERVICE_NAME, path)
+                    adapter = dbus.Interface(obj, ADAPTER_IFACE)
+                    
+                    ####
+                    self.manager = manager
+                    self.service = adapter
+
+        except Exception as e:
+            print(e)
+            sys.exit("Could not configure bluetooth. Is bluetoothd started?")
+
+        # Read the service record from file
+        try:
+            fh = open(sys.path[0] + "/sdp_record.xml", "r")
+        except Exception as e:
+            print(e)
+            sys.exit("Could not open the sdp record. Exiting...")            
+        self.service_record = fh.read()
+        fh.close()
+
+    def listen(self):
+        # Advertise our service record
+        self.service_handle = self.service.AddRecord(self.service_record)
+        print("Service record added")
+
+        # Start listening on the server sockets
+        self.scontrol.listen(1) # Limit of 1 connection
+        self.sinterrupt.listen(1)
+        print("Waiting for a connection")
+        self.ccontrol, self.cinfo = self.scontrol.accept()
+        print("Got a connection on the control channel from " + self.cinfo[Bluetooth.HOST])
+        self.cinterrupt, self.cinfo = self.sinterrupt.accept()
+        print("Got a connection on the interrupt channel from " + self.cinfo[Bluetooth.HOST])
+
+    def send_input(self, ir):
+        # Convert the hex array to a string
+        hex_str = ""
+        for element in ir:
+            if type(element) is list:
+                # This is our bit array - convert it to a single byte represented
+                # as a char
+                bin_str = ""
+                for bit in element:
+                    bin_str += str(bit)
+                hex_str += chr(int(bin_str, 2))
+            else:
+                # This is a hex value - we can convert it straight to a char
+                hex_str += chr(element)
+        # Send an input report
+        self.cinterrupt.send(hex_str)
+
+def mouse_test():
+    '''
+    buttons
+        0 - none
+        1 - left
+        2 - right
+    movement - +/- 127 units relative to home
+    '''
+    B_IDX = 3
+    X_IDX = 4
+    Y_IDX = 5
+    buttons = 0
+    x = 0
+    y = 0
+    state = [0xFD, 0x00, 0x03, buttons, x, y, 0x00, 0x00, 0x00]
+    
+    bt = Bluetooth()
+    bt.listen()
+    bt.send_input(state)
+
+
+    for i in range(10):
+
+        state[X_IDX] = 100
+        bt.send_input(state)
+        time.sleep(0.5)
+
+        state[X_IDX] = -100
+        bt.send_input(state)
+        time.sleep(0.5)
+
+
+def main():
+    mouse_test()
+
+if __name__ == '__main__':
+    main()
+

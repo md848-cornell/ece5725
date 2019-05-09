@@ -1,0 +1,3 @@
+hciconfig hci0 class 0x002580
+hciconfig hci0 name blmemtest
+hciconfig hci0 piscan

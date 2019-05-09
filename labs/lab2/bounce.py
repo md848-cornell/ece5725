@@ -8,7 +8,7 @@ import time
 
 os.putenv('SDL_VIDEODRIVER', 'fbcon') # Display on piTFT
 os.putenv('SDL_FBDEV', '/dev/fb1') 
-# os.putenv('SDL_FBDEV', '/dev/fb0') 
+#os.putenv('SDL_FBDEV', '/dev/fb0') 
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(27, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -28,7 +28,7 @@ ballrect = ball.get_rect()
 
 startTime = time.time()
 
-while 1:
+while True:
     ballrect = ballrect.move(speed)
 
     if ballrect.left < 0 or ballrect.right > width:

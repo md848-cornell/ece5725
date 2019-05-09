@@ -1,0 +1,19 @@
+### installation setup
+
+install hciconfig (if not installed)
+python3 -m pip install pybluez
+	if fails,
+	sudo apt-get install python-dev
+	sudo apt-get install libbluetooth-dev
+
+
+### before script:
+hciconfig hci0 class 0x002580
+hciconfig hci0 name Raspberry\ Pi
+hciconfig hci0 piscan
+
+# not accepting connection
+# https://stackoverflow.com/questions/12198198/pybluez-not-accepting-connection
+#
+
+
