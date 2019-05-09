@@ -24,10 +24,10 @@ if True:
 
 # initialize the camera and grab a reference to the raw camera capture
 camera = PiCamera()
-camera.resolution = (160*2, 120*2)
+camera.resolution = (160*3, 120*3)
 camera.framerate = 30
 camera.exposure_mode = 'off'
-rawCapture = PiRGBArray(camera, size=(160*2, 120*2))
+rawCapture = PiRGBArray(camera, size=(160*3, 120*3))
 
 # allow the camera to warmup
 time.sleep(0.1)
@@ -43,12 +43,13 @@ pygame.init()
 clock = pygame.time.Clock()
 
 
-size = width, height = 320, 240
+size = width, height = 1024, 768
 black = 0, 0, 0
 screen = pygame.display.set_mode(size)
 
 speed = [2,2]
-ball = pygame.image.load("sprite.png")
+ball = pygame.image.load("hold.png")
+ball = pygame.transform.scale(ball, (40, 40))
 ballrect = ball.get_rect()
 
 startTime = time.time()
@@ -177,7 +178,7 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
         f = cv2.drawContours(f, [hull], 0, (0,0,255), 1)
         dists = []
         
-        if chr(wk & 0xFF) in '0123456789':
+        if chr(wk & 0xFF) in '12':
             matchContour[int(chr(wk&0xFF))] = np.copy(hull)
         if type(hull) != type(None):
             matches = []
@@ -187,6 +188,17 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
             if len(matches) > 0:
                 ind = np.argmin(matches)
                 print(ind+1)
+                if ind == 0:
+                    print("MOVE")
+                    ball = pygame.image.load("hold.png")
+                    ball = pygame.transform.scale(ball, (40, 40))
+                    ballrect = ball.get_rect()
+                elif ind == 1:
+                    print("DRAG")
+                    ball = pygame.image.load("drag.png")
+                    ball = pygame.transform.scale(ball, (40, 40))
+                    ballrect = ball.get_rect()
+                
             
             
             
@@ -208,9 +220,7 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
     else:
         cx = int(M['m10']/M['m00'])
         cy = int(M['m01']/M['m00'])
-        print(cx/2)
-        print(" ")
-        print(cy/2)
+        
     try:
         (fex,fey),(feMA,fema),angle = cv2.fitEllipse(frame)
         print(angle)
@@ -226,9 +236,9 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
 
 
     screen.fill(black) # Erase the Work space
-    screen.blit(ball, [cx/2,cy/2]) # Combine Ball surface with workspace surface
+    screen.blit(ball, [cx*(width/(160*3))-20,cy/2*(width/(120*3))-20]) # Combine Ball surface with workspace surface
     pygame.display.flip() # display workspace on screen
-    clock.tick(30)
+    clock.tick(15)
     
 
 # When everything done, release the capture
