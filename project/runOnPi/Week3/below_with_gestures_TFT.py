@@ -8,13 +8,14 @@
 # import the necessary packages
 from picamera.array import PiRGBArray
 from picamera import PiCamera
+import RPi.GPIO as GPIO
 import time
 import cv2
 import numpy as np
 import os # for OS calls
 import pygame # Import pygame graphics library
 
-resScale = 4
+resScale = 3
 
 # setup pygame drivers and screen
 if True:
@@ -36,27 +37,56 @@ time.sleep(0.1)
 key = None
 bg = None
 
+portFcn = [0, 0, 0]
+
 frameCount = 0
 thrs = 0.09
 et = 0
 
+def GPIO17_callback(channel):
+    portFcn[0] = 1
+    print("SET HOLD GESTURE")
+    
+def GPIO22_callback(channel):
+    portFcn[1] = 1
+    print("SET DRAG GESTURE")
+
+def GPIO23_callback(channel):
+    portFcn[2] = 1
+
+def GPIO27_callback(channel):
+    print("QUITTING PROGRAM")
+    exit()
+
+     
+# INITIALIZE GPIO
+GPIO.setmode(GPIO.BCM)
+pull_up_ports = [17,22,23,27]
+quit_port = 27
+for port in pull_up_ports:
+    GPIO.setup(port, GPIO.IN,pull_up_down=GPIO.PUD_UP)
+    
+GPIO.add_event_detect(17, GPIO.FALLING, callback=GPIO17_callback, bouncetime=300)
+GPIO.add_event_detect(22, GPIO.FALLING, callback=GPIO22_callback, bouncetime=300)
+GPIO.add_event_detect(23, GPIO.FALLING, callback=GPIO23_callback, bouncetime=300)
+GPIO.add_event_detect(27, GPIO.FALLING, callback=GPIO27_callback, bouncetime=300)
+
+
+        
+# INITIALIZE PYGAME STUFF
 pygame.init()
-
 clock = pygame.time.Clock()
-
-
-size = width, height = 320,240#1024, 768
+size = width, height = 320,240
 black = 0,0,0
 screen = pygame.display.set_mode(size)
-
-speed = [2,2]
 ball = pygame.image.load("hold.png")
 ball = pygame.transform.scale(ball, (40, 40))
 ballrect = ball.get_rect()
 
 startTime = time.time()
 
-
+lcd = pygame.display.set_mode((320, 240))
+pygame.mouse.set_visible( False )
 
 def edges(frame, thresh):
 
@@ -73,18 +103,6 @@ def edges(frame, thresh):
     frame = (mm < frame)
     frame = np.float32(frame)
     return frame
-
-def draw_box(img, y, x, h=12,w=12, color=1):
-    out = np.copy(img)
-    for r in range(-1*h,h):
-        yi = y+r
-        if yi >=0 and yi < img.shape[0]:
-            for c in range(-1*w,w):
-                xi = x+c
-                if xi >= 0 and xi < img.shape[1]:
-                    out[yi,xi] = color
-    return out
-
 
 def center_of_mass(img):
     h = img.shape[0]
@@ -110,14 +128,12 @@ def center_of_mass(img):
 
     return yy,xx
 
-### start of script
-
 bg = None
 matchContour = [None] * 10
 nbg = 1
 Start = 1
+
 for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
-    
     wk = cv2.waitKey(1)
     frame = frame.array
     # Capture frame-by-frame
@@ -142,10 +158,12 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
         bg = frame 
         nbg = 1
         Start = 0
-    if wk & 0xFF == ord('b'):
+    if portFcn[2]:
         bg = frame 
         nbg = 1
-    
+        print("BACKGROUND SUBTRACTED")
+        portFcn[2] = 0
+        
     if wk & 0xFF == ord('n'):
         bg = frame/(nbg+1) + bg*nbg/(nbg+1) 
         nbg += 1
@@ -177,11 +195,17 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
         hull = cv2.convexHull(cnts)
         defectHull = cv2.convexHull(cnts,returnPoints=False)
         defects = cv2.convexityDefects(cnts, defectHull)
-        f = cv2.drawContours(f, [hull], 0, (0,0,255), 1)
+        f = cv2.drawContours(f, [hull], 0, (0,0,255), 5)
         dists = []
         
         if chr(wk & 0xFF) in '12':
             matchContour[int(chr(wk&0xFF))] = np.copy(hull)
+        if portFcn[0]:
+            matchContour[0] = np.copy(hull)
+            portFcn[0] = 0
+        if portFcn[1]:
+            matchContour[1] = np.copy(hull)
+            portFcn[1] = 0
         if type(hull) != type(None):
             matches = []
             for mc in range(len(matchContour)):
@@ -224,13 +248,18 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
 
     # display frame
     f = cv2.resize(f, (160*4,120*4), fx=0, fy=0, interpolation = cv2.INTER_NEAREST)
-    #cv2.imshow('frame',f)
+    cv2.imwrite('tmp.jpg',f)
+    f = pygame.image.load('tmp.jpg')
+    f = pygame.transform.scale(f, (320, 240))
+
     rawCapture.truncate(0)
     
-    screen.fill(black) # Erase the Work space
+    #screen.fill(black) # Erase the Work space
     #screen.blit(ball, [cx*(width/(160*resScale))-20,(120*resScale-(cy*(height/(120*resScale))-20))]) # Combine Ball surface with workspace surface
+    #screen.blit(ball, [width/2,height/2]) 
+    screen.blit(f, [0,0]) 
+
     pygame.display.flip() # display workspace on screen
-    screen.blit(ball, [width/2,height/2]) 
     #clock.tick(60)
     
 # When everything done, release the capture
