@@ -15,7 +15,7 @@ import numpy as np
 import os # for OS calls
 import pygame # Import pygame graphics library
 
-resScale = 3
+resScale = 4
 
 # setup pygame drivers and screen
 if True:
@@ -38,6 +38,8 @@ key = None
 bg = None
 
 portFcn = [0, 0, 0]
+mouseEm = [0, 0, 0]
+
 
 frameCount = 0
 thrs = 0.09
@@ -196,6 +198,7 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
         defectHull = cv2.convexHull(cnts,returnPoints=False)
         defects = cv2.convexityDefects(cnts, defectHull)
         f = cv2.drawContours(f, [hull], 0, (0,0,255), 5)
+
         dists = []
         
         if chr(wk & 0xFF) in '12':
@@ -216,14 +219,10 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
                 print(ind+1)
                 if ind == 0:
                     print("MOVE")
-                    ball = pygame.image.load("hold.png")
-                    ball = pygame.transform.scale(ball, (40, 40))
-                    ballrect = ball.get_rect()
+                    mouseEm[0] = 0
                 elif ind == 1:
                     print("DRAG")
-                    ball = pygame.image.load("drag.png")
-                    ball = pygame.transform.scale(ball, (40, 40))
-                    ballrect = ball.get_rect()
+                    mouseEm[0] = 1
             
         if type(defects) != type(None) and len(defects) > 0:
             for defect in defects:
@@ -239,7 +238,11 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
     else:
         cx = int(M['m10']/M['m00'])
         cy = int(M['m01']/M['m00'])
-        
+    if mouseEm[0] == 0:
+        os.system("xdotool mouseup 1")
+    elif mouseEm[0] == 1:
+        os.system("xdotool mousedown 1")
+    os.system("xdotool mousemove %d %d"  % (cx*(1600/(160*resScale)), cy*(1200/(120*resScale))))
     try:
         (fex,fey),(feMA,fema),angle = cv2.fitEllipse(frame)
         print(angle)
@@ -254,9 +257,7 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
 
     rawCapture.truncate(0)
     
-    #screen.fill(black) # Erase the Work space
-    #screen.blit(ball, [cx*(width/(160*resScale))-20,(120*resScale-(cy*(height/(120*resScale))-20))]) # Combine Ball surface with workspace surface
-    #screen.blit(ball, [width/2,height/2]) 
+
     screen.blit(f, [0,0]) 
 
     pygame.display.flip() # display workspace on screen
