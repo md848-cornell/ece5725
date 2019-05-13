@@ -14,10 +14,14 @@ import cv2
 import numpy as np
 import os # for OS calls
 import pygame # Import pygame graphics library
-import threading
+
+import dbus
+import dbus.service
+import dbus.mainloop.glib
 
 resScale = 4
-
+cxp = 0
+cyp = 0
 # setup pygame drivers and screen
 if True:
     os.putenv('SDL_VIDEODRIVER', 'fbcon') # Display on piTFT
@@ -45,32 +49,38 @@ mouseEm = [0, 0, 0]
 frameCount = 0
 thrs = 0.09
 et = 0
-        
-# INITIALIZE PYGAME STUFF
-pygame.init()
-clock = pygame.time.Clock()
-size = width, height = 320,240
-black = 0,0,0
-screen = pygame.display.set_mode(size)
-ball = pygame.image.load("hold.png")
-ball = pygame.transform.scale(ball, (40, 40))
-ballrect = ball.get_rect()
 
-startTime = time.time()
+bus = dbus.SystemBus()
+btkservice = bus.get_object('org.yaptb.btkbservice','/org/yaptb/btkbservice')
+dev = dbus.Interface(btkservice,'org.yaptb.btkbservice') 
+time.sleep(2)
 
-lcd = pygame.display.set_mode((320, 240))
-pygame.mouse.set_visible( False )
+def to_binary(i):
+    if i >= 0:
+        if i > 127: i = 127
+        i = i & 0xFF
+    else:
+        if i < -127: i = -127
+        i = abs(i) & 0xFF
+        i = ~i + 1
+        i = i & 0xFF
+    return i
 
-bg = None
-matchContour = [None] * 10
-nbg = 1
-Start = 1
+def send_move(dev, buttons, x, y):
+    x = to_binary(int(x))
+    y = to_binary(int(y))
+    wheel = 0
+    dev.send_array(0,[0xA1,0x01, buttons, x, y, wheel, 0x00, 0x00])
 
-kernel = np.ones((3,3),np.uint8)
-kernel[0,0] = 0
-kernel[0,2] = 0
-kernel[2,0] = 0
-kernel[2,2] = 0
+
+def send_state(dev, buttons, x, y):
+    while abs(x) > 127 or abs(y) > 127:
+        if abs(x) > 127:
+            x -= x/abs(x) * 127
+        if abs(y) > 127:
+            y -= y/abs(y) * 127
+        send_move(dev,buttons,x,y)
+    send_move(dev,buttons,x,y)
 
 def GPIO17_callback(channel):
     portFcn[0] = 1
@@ -100,6 +110,23 @@ GPIO.add_event_detect(22, GPIO.FALLING, callback=GPIO22_callback, bouncetime=300
 GPIO.add_event_detect(23, GPIO.FALLING, callback=GPIO23_callback, bouncetime=300)
 GPIO.add_event_detect(27, GPIO.FALLING, callback=GPIO27_callback, bouncetime=300)
 
+
+        
+# INITIALIZE PYGAME STUFF
+pygame.init()
+clock = pygame.time.Clock()
+size = width, height = 320,240
+black = 0,0,0
+screen = pygame.display.set_mode(size)
+ball = pygame.image.load("hold.png")
+ball = pygame.transform.scale(ball, (40, 40))
+ballrect = ball.get_rect()
+
+startTime = time.time()
+
+lcd = pygame.display.set_mode((320, 240))
+pygame.mouse.set_visible( False )
+
 def edges(frame, thresh):
 
     sobelx = cv2.Sobel(frame, cv2.CV_32F, 1, 0, ksize=1)
@@ -107,7 +134,7 @@ def edges(frame, thresh):
     mag = np.power(np.power(sobelx,2) + np.power(sobely,2),1/2)
 
     # processing on edge image
-    #frame = cv2.blur(mag,(3,3))
+    frame = cv2.blur(mag,(3,3))
     #frame = cv2.medianBlur(frame5)
 
     # thresholding
@@ -139,17 +166,19 @@ def center_of_mass(img):
         xx = int(xc/total)
 
     return yy,xx
-    
-def processFrame(frame):
-    global Start
-    global bg
-    global nbg
-    global kernel
-    global portFcn
+
+bg = None
+matchContour = [None] * 10
+nbg = 1
+Start = 1
+
+for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
+    wk = cv2.waitKey(1)
+    frame = frame.array
     # Capture frame-by-frame
     #ret, frame = cap.read()
     
-    #original = np.copy(frame)
+    original = np.copy(frame)
     
     frame = cv2.blur(frame,(5,5))
     #frame = cv2.medianBlur(frame,5)
@@ -159,9 +188,7 @@ def processFrame(frame):
     #f = np.zeros((frame.shape[0],frame.shape[1]))
     
     thrs = 0.09
-    #################################
-    #THREADING START#################
-    #################################
+
     frame = edges(frame, thrs)
 
     frame = (frame - np.amin(frame))/(np.amax(frame)-np.amin(frame)) 
@@ -176,16 +203,27 @@ def processFrame(frame):
         print("BACKGROUND SUBTRACTED")
         portFcn[2] = 0
         
+    if wk & 0xFF == ord('n'):
+        bg = frame/(nbg+1) + bg*nbg/(nbg+1) 
+        nbg += 1
+    if wk & 0xFF == ord('q'):
+        break
+
     if type(bg) != type(None):
         frame = frame - bg
     et = 0.5
     frame[frame < et] = 0
     frame = frame * 255
     frame = frame.astype(np.uint8)
-    
+    kernel = np.ones((3,3),np.uint8)
+    kernel[0,0] = 0
+    kernel[0,2] = 0
+    kernel[2,0] = 0
+    kernel[2,2] = 0
     frame = cv2.erode(frame,kernel, iterations=1)
 
-    f = np.zeros((frame.shape[0],frame.shape[1],3),np.uint8)
+    #f = np.copy(original)
+    f = np.zeros((frame.shape[0],frame.shape[1],3),original.dtype)
     f[:,:,0] = frame
     f[:,:,1] = frame
     f[:,:,2] = frame
@@ -194,8 +232,14 @@ def processFrame(frame):
     if len(contours) > 0:
         cnts = np.vstack([contours[i] for i in range(len(contours))])
         hull = cv2.convexHull(cnts)
+        defectHull = cv2.convexHull(cnts,returnPoints=False)
+        defects = cv2.convexityDefects(cnts, defectHull)
         f = cv2.drawContours(f, [hull], 0, (0,0,255), 5)
 
+        dists = []
+        
+        if chr(wk & 0xFF) in '12':
+            matchContour[int(chr(wk&0xFF))] = np.copy(hull)
         if portFcn[0]:
             matchContour[0] = np.copy(hull)
             portFcn[0] = 0
@@ -216,7 +260,13 @@ def processFrame(frame):
                 elif ind == 1:
                     print("DRAG")
                     mouseEm[0] = 1
-
+            
+        if type(defects) != type(None) and len(defects) > 0:
+            for defect in defects:
+                fa = defect[0,2]
+                dist = defect[0,3]
+                far = tuple(cnts[fa][0])
+                dists += [dist]
     
     M = cv2.moments(frame)
     if M['m00'] == 0: 
@@ -225,33 +275,28 @@ def processFrame(frame):
     else:
         cx = int(M['m10']/M['m00'])
         cy = int(M['m01']/M['m00'])
-    if mouseEm[0] == 0:
-        os.system("xdotool mouseup 1")
-    elif mouseEm[0] == 1:
-        os.system("xdotool mousedown 1")
-    os.system("xdotool mousemove %d %d"  % (cx*(1600/(160*resScale)), cy*(1200/(120*resScale))))
-
-
+    rx = cx - cxp
+    ry = cy - cyp
+    cxp = cx
+    cyp = cy
+    mouseEm[1] = rx
+    mouseEm[2] = ry
+    
+    send_state(dev, mouseEm[0], mouseEm[1], mouseEm[2])
     # display frame
     f = cv2.resize(f, (160*4,120*4), fx=0, fy=0, interpolation = cv2.INTER_NEAREST)
     cv2.imwrite('tmp.jpg',f)
     f = pygame.image.load('tmp.jpg')
     f = pygame.transform.scale(f, (320, 240))
 
+    rawCapture.truncate(0)
+    
 
     screen.blit(f, [0,0]) 
 
     pygame.display.flip() # display workspace on screen
     #clock.tick(60)
-
-for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
-    #wk = cv2.waitKey(1)
-    frame = frame.array
-    t = threading.Thread(target=processFrame, args=(frame,))
-    t.start()
-    rawCapture.truncate(0)
-
-    #processFrame(frame)
+    
 # When everything done, release the capture
 cap.release()
 cv2.destroyAllWindows()
