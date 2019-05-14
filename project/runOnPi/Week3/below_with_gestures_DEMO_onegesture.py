@@ -22,7 +22,7 @@ import dbus.mainloop.glib
 
 resScale = 1
 postthreshold = 200
-matchThreshold = 1.6
+matchThreshold = 2
 cxp = 0
 cyp = 0
 # setup pygame drivers and screen
