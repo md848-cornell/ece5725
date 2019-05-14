@@ -21,6 +21,8 @@ import dbus.service
 import dbus.mainloop.glib
 
 resScale = 1
+postthreshold = 200
+matchThreshold = 1.6
 cxp = 0
 cyp = 0
 # setup pygame drivers and screen
@@ -82,12 +84,12 @@ def send_state(dev, buttons, x, y):
     send_move(dev,buttons,x,y)
 
 def GPIO17_callback(channel):
-    portFcn[0] = 1
-    print("SET HOLD GESTURE")
+    portFcn[0] = not portFcn[0]
+    print("HOLD CURSOR")
     
 def GPIO22_callback(channel):
     portFcn[1] = 1
-    print("SET DRAG GESTURE")
+    print("SET CLICK GESTURE")
 
 def GPIO23_callback(channel):
     portFcn[2] = 1
@@ -96,7 +98,6 @@ def GPIO27_callback(channel):
     print("QUITTING PROGRAM")
     exit()
 
-     
 # INITIALIZE GPIO
 GPIO.setmode(GPIO.BCM)
 pull_up_ports = [17,22,23,27]
@@ -108,8 +109,6 @@ GPIO.add_event_detect(17, GPIO.FALLING, callback=GPIO17_callback, bouncetime=300
 GPIO.add_event_detect(22, GPIO.FALLING, callback=GPIO22_callback, bouncetime=300)
 GPIO.add_event_detect(23, GPIO.FALLING, callback=GPIO23_callback, bouncetime=300)
 GPIO.add_event_detect(27, GPIO.FALLING, callback=GPIO27_callback, bouncetime=300)
-
-
         
 # INITIALIZE PYGAME STUFF
 pygame.init()
@@ -117,13 +116,8 @@ clock = pygame.time.Clock()
 size = width, height = 320,240
 black = 0,0,0
 screen = pygame.display.set_mode(size, pygame.HWSURFACE)
-ball = pygame.image.load("hold.png")
-ball = pygame.transform.scale(ball, (40, 40))
-ballrect = ball.get_rect()
 
 startTime = time.time()
-
-lcd = pygame.display.set_mode((320, 240))
 pygame.mouse.set_visible( False )
 
 def edges(frame, thresh):
@@ -141,7 +135,6 @@ def edges(frame, thresh):
     frame = (mm < frame)
     frame = np.float32(frame)
     return frame
-    
     
 
 def center_of_mass(img):
@@ -185,7 +178,6 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
     original = np.copy(frame)
     
     frame = cv2.blur(frame,(7,7))
-    #frame = cv2.medianBlur(frame,5)
 
     # Our operations on the frame come here
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -227,7 +219,7 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
     frame = cv2.erode(frame,kernel, iterations=1)
     
     frame = cv2.blur(frame,(3,3))
-    frame[frame < 245] = 0
+    frame[frame < postthreshold] = 0
     
     #f = np.copy(original)
     f = np.zeros((frame.shape[0],frame.shape[1],3),original.dtype)
@@ -247,34 +239,21 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
         
         if chr(wk & 0xFF) in '12':
             matchContour[int(chr(wk&0xFF))] = np.copy(hull)
-        if portFcn[0]:
-            matchContour[0] = np.copy(hull)
-            portFcn[0] = 0
+        #if portFcn[0]:
+            #matchContour[0] = np.copy(hull)
+            #portFcn[0] = 0
         if portFcn[1]:
             matchContour[1] = np.copy(hull)
             portFcn[1] = 0
         if type(hull) != type(None):
-            matches = []
-            for mc in range(len(matchContour)):
-                if type(matchContour[mc]) != type(None):
-                    matches += [cv2.matchShapes(hull,matchContour[mc],cv2.CONTOURS_MATCH_I2,0)]
-            if len(matches) > 0:
-                ind = np.argmin(matches)
-                #print(ind+1)
-                prevMouseEm[0] = mouseEm[0]
-                if ind == 0 and prevMouseEm[0] != 0:
-                    print("MOVE")
-                    mouseEm[0] = 0
-                elif ind == 1 and prevMouseEm[0] != 1:
-                    print("DRAG")
-                    mouseEm[0] = 1
-            
-        if type(defects) != type(None) and len(defects) > 0:
-            for defect in defects:
-                fa = defect[0,2]
-                dist = defect[0,3]
-                far = tuple(cnts[fa][0])
-                dists += [dist]
+            matches = cv2.matchShapes(hull,matchContour[1],cv2.CONTOURS_MATCH_I2,0)
+            print(matches)
+            prevMouseEm[0] = mouseEm[0]
+            if matches < matchThreshold:
+                print("DRAG")
+                mouseEm[0] = 1
+            else:
+                mouseEm[0] = 0
     
     M = cv2.moments(frame)
     if M['m00'] == 0: 
@@ -283,7 +262,24 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
     else:
         cx = int(M['m10']/M['m00'])
         cy = int(M['m01']/M['m00'])
+ 
+        
+    # display frame
+    f = cv2.resize(f, (160*4,120*4), fx=0, fy=0, interpolation = cv2.INTER_NEAREST)
+    cv2.imwrite('tmp.jpg',f)
+    f = pygame.image.load('tmp.jpg')
+    f = pygame.transform.scale(f, (320, 240))
+    f = pygame.transform.flip(f,0,1)
+
+    rawCapture.truncate(0)
     
+    screen.blit(f, [0,0]) 
+
+    pygame.display.flip() # display workspace on screen
+    
+    if portFcn[0] == 1:
+        continue
+        
     #Check jump
     if abs(prevMouseEm[2]) > 100 or abs(prevMouseEm[1]) > 100 or prevMouseEm[0] != mouseEm[0]:
         rx = 0
@@ -314,21 +310,9 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
         print('CLICKING')
         mouseEm1[1] = 0
         mouseEm1[2] = 0
-    send_state(dev, mouseEm1[0], mouseEm1[1], mouseEm1[2])
-    # display frame
-    f = cv2.resize(f, (160*4,120*4), fx=0, fy=0, interpolation = cv2.INTER_NEAREST)
-    cv2.imwrite('tmp.jpg',f)
-    f = pygame.image.load('tmp.jpg')
-    f = pygame.transform.scale(f, (320, 240))
-    f = pygame.transform.flip(f,0,1)
-
-    rawCapture.truncate(0)
     
+    send_state(dev, mouseEm1[0], mouseEm1[1], mouseEm1[2])
 
-    screen.blit(f, [0,0]) 
-
-    pygame.display.flip() # display workspace on screen
-    #clock.tick(60)
     
 # When everything done, release the capture
 cap.release()
