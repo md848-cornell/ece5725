@@ -12,6 +12,7 @@ import RPi.GPIO as GPIO
 import time
 import cv2
 import numpy as np
+import math
 import os # for OS calls
 import pygame # Import pygame graphics library
 
@@ -19,7 +20,7 @@ import dbus
 import dbus.service
 import dbus.mainloop.glib
 
-resScale = 2
+resScale = 1
 cxp = 0
 cyp = 0
 # setup pygame drivers and screen
@@ -43,8 +44,8 @@ key = None
 bg = None
 
 portFcn = [0, 0, 0]
-mouseEm = [0, 0, 0]
-prevMouseEm = [0, 0, 0]
+mouseEm = np.asarray([0, 0, 0])
+prevMouseEm = np.asarray([0, 0, 0])
 
 
 frameCount = 0
@@ -144,6 +145,11 @@ def edges(frame, thresh):
     frame = np.float32(frame)
     return frame
     
+def mouseEmulate(mouseEm1):
+    if mouseEm1[0] == 1: os.system("xdotool mousedown 1")
+    else: os.system("xdotool mouseup 0")
+    os.system("xdotool mousemove %d %d"  % (mouseEm1[1]*(1600/(160*resScale)), mouseEm1[2]*(1200/(120*resScale))))
+    
     
 
 def center_of_mass(img):
@@ -175,6 +181,9 @@ matchContour = [None] * 10
 nbg = 1
 Start = 1
 
+mouseL_len = 3
+mouseL = np.asarray([[0,0,0]] * mouseL_len)
+
 for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
     wk = cv2.waitKey(1)
     frame = frame.array
@@ -183,7 +192,7 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
     
     original = np.copy(frame)
     
-    frame = cv2.blur(frame,(5,5))
+    frame = cv2.blur(frame,(7,7))
     #frame = cv2.medianBlur(frame,5)
 
     # Our operations on the frame come here
@@ -224,7 +233,10 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
     kernel[2,0] = 0
     kernel[2,2] = 0
     frame = cv2.erode(frame,kernel, iterations=1)
-
+    
+    frame = cv2.blur(frame,(3,3))
+    frame[frame < 245] = 0
+    
     #f = np.copy(original)
     f = np.zeros((frame.shape[0],frame.shape[1],3),original.dtype)
     f[:,:,0] = frame
@@ -258,10 +270,10 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
                 ind = np.argmin(matches)
                 #print(ind+1)
                 prevMouseEm[0] = mouseEm[0]
-                if ind == 0 and prevMouseEm != 0:
+                if ind == 0 and prevMouseEm[0] != 0:
                     print("MOVE")
                     mouseEm[0] = 0
-                elif ind == 1 and prevMouseEm != 1:
+                elif ind == 1 and prevMouseEm[0] != 1:
                     print("DRAG")
                     mouseEm[0] = 1
             
@@ -291,11 +303,28 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
     cyp = cy
     prevMouseEm[1] = mouseEm[1]
     prevMouseEm[2] = mouseEm[2]
-    mouseEm[1] = rx*10
-    mouseEm[2] = -ry*20
-    print(mouseEm)
+    if rx != 0: 
+        #mouseEm[1] = abs(rx**2.5)*(rx/abs(rx))
+        mouseEm[1] = cx
+
+    else:
+        mouseEm[1] = 0
+    if ry != 0: 
+        #mouseEm[2] = -abs(ry**2.5)*(ry/abs(ry))
+        mouseEm[2] = cy
+    else:
+        mouseEm[2] = 0
+    mouseL[1:,:] = mouseL[0:(mouseL_len-1),:]
+    mouseL[0,:] = mouseEm[:]
+    print(mouseL)
+    mouseEm1 = np.mean(mouseL, axis=0).astype(np.int16)
+    if len(np.unique(mouseL[:,0])) != 1:
+        print('CLICKING')
+        mouseEm1[1] = 0
+        mouseEm1[2] = 0
+    #send_state(dev, mouseEm1[0], mouseEm1[1], mouseEm1[2])
+    mouseEmulate(mouseEm1)
     
-    send_state(dev, mouseEm[0], mouseEm[1], mouseEm[2])
     # display frame
     f = cv2.resize(f, (160*4,120*4), fx=0, fy=0, interpolation = cv2.INTER_NEAREST)
     cv2.imwrite('tmp.jpg',f)
