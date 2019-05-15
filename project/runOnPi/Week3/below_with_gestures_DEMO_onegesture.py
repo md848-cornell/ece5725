@@ -166,6 +166,11 @@ matchContour = [None] * 10
 nbg = 1
 Start = 1
 
+hullColor = (0,0,255)
+
+cx = 0
+cy = 0
+
 mouseL_len = 3
 mouseL = np.asarray([[0,0,0]] * mouseL_len)
 
@@ -233,7 +238,7 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
         hull = cv2.convexHull(cnts)
         defectHull = cv2.convexHull(cnts,returnPoints=False)
         defects = cv2.convexityDefects(cnts, defectHull)
-        f = cv2.drawContours(f, [hull], 0, (0,0,255), 5)
+        f = cv2.drawContours(f, [hull], 0, hullColor, 5)
 
         dists = []
         
@@ -256,10 +261,7 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
                 mouseEm[0] = 0
     
     M = cv2.moments(frame)
-    if M['m00'] == 0: 
-        cx = 0
-        cy = 0
-    else:
+    if M['m00'] != 0: 
         cx = int(M['m10']/M['m00'])
         cy = int(M['m01']/M['m00'])
  
@@ -280,13 +282,18 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
     if portFcn[0] == 1:
         continue
         
+
+
     #Check jump
-    if abs(prevMouseEm[2]) > 100 or abs(prevMouseEm[1]) > 100 or prevMouseEm[0] != mouseEm[0]:
+    if abs(prevMouseEm[2]) > 100 or abs(prevMouseEm[1]) > 100 or prevMouseEm[0] != mouseEm[0] or len(contours) == 0:
         rx = 0
         ry = 0
     else:
         rx = cx - cxp
         ry = cy - cyp
+    if abs(rx)  > 100 or abs(ry) > 100:
+        rx = 0
+        ry = 0
     cxp = cx
     cyp = cy
     prevMouseEm[1] = mouseEm[1]
@@ -311,6 +318,11 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
         mouseEm1[1] = 0
         mouseEm1[2] = 0
     
+    if int(mouseEm1[0]) == 1:
+        hullColor = (0,255,0)
+    else:
+        hullColor = (0,0,255)
+
     send_state(dev, mouseEm1[0], mouseEm1[1], mouseEm1[2])
 
     
