@@ -115,7 +115,9 @@ We started the process of mapping hand movements to mouse gestures by first atte
 
 We used OpenCV to find edges in the input image, with the <a href=”https://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_gradients/py_gradients.html”> OpenCV Sobel() function </a> and a kernel size of 1, in each orientation. We then used the magnitude of the gradient in both orientations to generate a simple edge image. After exploring other operations before and after applying the Sobel operation, we found the best results by applying the following sequence of operations. <br><br>
 
-[Edge Detection Process]<br><br>
+<img class="img-rounded" src="pics/edge_detection_process.png" alt="Our Edge Detection Process" style="width:80%;">
+<br><br>
+
 
 [Code reference]<br><br>
 
@@ -250,19 +252,13 @@ I started working on this project by experimenting with different edge detection
           <ul>
               <li>Raspberry Pi $35.00</li>
               <li>Raspberry Pi Camera V2 $25.00</li>
-              <a href="https://www.adafruit.com/product/1463"><li>NeoPixel Ring - $9.95</li></a>
-              <li>LEDs, Resistors and Wires - Provided in lab</li>
           </ul>
-          <h3>Total: $69.95</h3>
+          <h3>Total: $60.00</h3>
       </div>
       <hr>
       <div style="font-size:18px">
           <h2>References</h2>
           <a href="https://picamera.readthedocs.io/">PiCamera Document</a><br>
-          <a href="http://www.micropik.com/PDF/SG90Servo.pdf">Tower Pro Servo Datasheet</a><br>
-          <a href="http://getbootstrap.com/">Bootstrap</a><br>
-          <a href="http://abyz.co.uk/rpi/pigpio/">Pigpio Library</a><br>
-          <a href="https://sourceforge.net/p/raspberry-gpio-python/wiki/Home/">R-Pi GPIO Document</a><br>
 
       </div>
 
