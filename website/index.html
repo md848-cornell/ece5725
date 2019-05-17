@@ -63,6 +63,9 @@
 
         <div class="starter-template">
             <h1>Gesture Controlled Mouse</h1>
+            ECE 5725: Design with Embedded Operating Systems <br>
+            School of Electrical and Computer Engineering <br>
+            Cornell University <br>
             <p class="lead">Paolo Arguelles (pa394)
                 <br> Mike DiDomenico (md848)</p>
         </div>
@@ -85,25 +88,18 @@
         <hr id='obj'>
 
         <div class="row" align="left">
-            <div class="col-md-4" style="text-align:center;">
-            </div>
-            <div class="col-md-8" style="font-size:18px;">
-                <h2>Project Objectives:</h2>
-                <ul>
-                    <li>Identify the user’s hand in front of a static background</li>
-                    <li> Determine if the user is making one of two gestures</li>
+          <h2>Project Objectives</h2>
+          <ul>
+              <li>Identify the user’s hand in front of a static background</li>
+              <li> Determine if the user is making one of two gestures</li>
+              <li> Emulate a Bluetooth mouse</li>
+              <li> Use information about a user’s hand to send commands to control the mouse of another device, for example, moving the hand would move the mouse, and a certain gesture would map to a mouse click. </li>
 
-                    <li> Emulate a Bluetooth mouse</li>
-
-                    <li> Use information about a user’s hand to send commands to control the mouse of another device, for example, moving the hand would move the mouse, and a certain gesture would map to a mouse click. </li>
-
-                </ul>
-            </div>
         </div>
 
         <hr id='design'>
 
-        <div style="text-align:center;">
+        <div style="text-align:justify;">
             <h2>Design Process and Testing</h2>
             <p style="text-align: justify;padding: 0px 30px;">
               <h3>Related Work</h3>
@@ -131,7 +127,7 @@
                 <br>
                 <br>
 
-                <img class="img-rounded" src="pics/region_growing.png" alt="Region Growing Image" style="width:40%;">
+                <img class="center-block" src="pics/region_growing.png" alt="Region Growing Image" style="width:40%;">
                 <br>
                 <br> We attempted to use a similar algorithm, but one which used edges generated not from a grayscale image, but from each of the hue, saturation, and value representation of the image. The idea behind this strategy was that hue segmentation/edges would separate the user from the background, and that saturation/value would separate the hand from the face, since the lighting was slightly different on each part of the body. While this seemed promising at first, it was unreliable in different lighting, and had highly variable performance. [Code reference]
                 <br>
@@ -236,7 +232,7 @@
                     <br>
 
                     <h3 align="left">What Didn't Work</h3>
-                    <p style="text-align: justify;padding: 0px 30px;">
+                    <p style="text-align: justify;padding: 0px 0px;">
 
                         At the start of the project, we experimented with a number of different methods to detect the user’s hand. We initially tried to generate an edge image from the original frame, using different edge operators, filters, and thresholds. We varied many parameters and techniques, and eventually were able to create an edge image of only the significant edges in the image. However, this did not help us with hand detection, and so we next attempted to use the skin color of the user to segment the hand. We began by using a calibration algorithm were the user would place their hand in the center of the screen, and press a button. The algorithm would use region growing with thresholding to scan until it found colors that were significantly different from neighbors or where it started. This technique had a number of issues; the thresholds were very dependent on the specifics of the situation, including the lighting, background, and user. We approaching the same issue using edge images, and generated edge images in different ways, including using HSV segmentation, with different thresholds instead of RGB. However, we found that because of noise and variable environments, we could not find a process that worked reliable to identify the hand.
                         <br>
@@ -249,7 +245,7 @@
                         <h3 align="left">Opportunities for Improvement</h3>
                         <p style="text-align: justify;padding: 0px 30px;">
 
-                            <br> More optimization
+                        <strong>More optimization</strong>
                             <br> Better gesture control
                             <br> More gestures
                             <br> Removing the arm from the hand image
@@ -299,9 +295,38 @@
 
         <hr>
 
+        <h2>Code Appendix</h2>
         <div class="row">
-            <h2>Code Appendix</h2>
-            <h3>Test</h3>
+            <h3>start.sh</h3>
+            <samp><code>
+              #Stop the background process
+              sudo /etc/init.d/bluetooth stop
+              # Turn on Bluetooth
+              sudo hciconfig hcio up
+              # Update  mac address
+              #./updateMac.sh
+              #Update Name
+              #./updateName.sh RPi_Mouse
+              #Get current Path
+              export C_PATH=$(pwd)
+              #Create Tmux session
+              tmux has-session -t  mlabviet
+              if [ $? != 0 ]; then
+
+                  echo "starting tmux commands"
+                  tmux new-session -s mlabviet -n os -d
+                  tmux split-window -v -t mlabviet:os.0
+                  tmux split-window -v -t mlabviet:os.1
+                  tmux send-keys -t mlabviet:os.0 'cd $C_PATH && sudo /usr/sbin/bluetoothd --nodetach --debug -p time ' C-m
+                  tmux send-keys -t mlabviet:os.1 'cd $C_PATH/server && sudo python btk_mouse.py ' C-m
+                  tmux send-keys -t mlabviet:os.2 'cd $C_PATH && sudo /usr/bin/bluetoothctl' C-m
+                  echo "tmux done"
+              fi
+              </code></samp>
+        </div>
+
+        <div class="row">
+            <h3>gestureDetection.py</h3>
             <pre><code>
               # source:
               # https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_gui/py_video_display/py_video_display.html
@@ -619,10 +644,8 @@
               # Release the capture
               cap.release()
               cv2.destroyAllWindows()
-
               </code></pre>
         </div>
-
     </div>
     <!-- /.container -->
 
