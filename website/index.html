@@ -62,7 +62,8 @@
 
       <div class="starter-template">
         <h1>Gesture Controlled Mouse</h1>
-        <p class="lead">Paolo Argulles (pa394)<br>Mike DiDomenico (md848)</p>
+        <p class="lead">Paolo Arguelles (pa394)<br>
+          Mike DiDomenico (md848)</p>
       </div>
 
       <hr>
@@ -75,7 +76,7 @@
 
       <div style="text-align:center;">
               <h2>Introduction</h2>
-              <p style="text-align: left;padding: 0px 30px;">
+              <p style="text-align: justify;padding: 0px 30px;">
 	     For this project, we used a Raspberry Pi and gesture detection with OpenCV to emulate a Bluetooth mouse. The Raspberry Pi has a PiCam attachment, and captures continuous frames. The camera faces upwards, and the image of the blank ceiling is stored, and removed from all of the successive frames. Each frame is processed to detect the hand, and which of two gestures that the user is making. The motion of the hand, and the gestures are analyzed to send Bluetooth mouse commands to a remote machine.  
 	      </p>
       </div>
@@ -88,7 +89,7 @@
           <div class="col-md-8" style="font-size:18px;">
           <h2>Project Objectives:</h2>
           <ul>
-            	<li>Identify the user’s hand in front of a static backgroun</li>
+            	<li>Identify the user’s hand in front of a static background</li>
 		<li> Determine if the user is making one of two gestures</li>
 
 		<li> Emulate a Bluetooth mouse</li>
@@ -103,7 +104,7 @@
 
       <div style="text-align:center;">
               <h2>Design Process and Testing</h2>
-              <p style="text-align: left;padding: 0px 30px;">
+              <p style="text-align: justify;padding: 0px 30px;">
 
 		When starting the project, we experimented with OpenCV on both our laptops and on the Raspberry Pi. We began on the Pi by simply reading frames from the PiCam. [Code Listing] We explored a number of different resolutions throughout the project, to try to find which resolution would provide all of the necessary details, but which would also allow us to process frames quickly. Through experimentation, we eventually decided to use capture resolutions of (WxH).<br><br>
 
@@ -167,7 +168,7 @@ In order to smooth out the movement of the mouse over Bluetooth, we used a tempo
 
       <div style="text-align:center;">
               <h2>Implementation</h2>
-              <p style="text-align: left;padding: 0px 30px;">
+              <p style="text-align: justify;padding: 0px 30px;">
 	     Our final demonstration system was implemented with a Raspberry Pi, PiCam, and PiTFT. When the user powers on the system, the applications starts immediately, and performs background subtraction to compensate for whatever background it is facing. After this, the user can press the 27 button on the PiTFT to quit the application, the 23 button on the PiTFT to use the current frame for future background subtraction, the 22 button on the PiTFT to record the current gesture as the “click” gesture, and the 17 button on the PiTFT to record the current gesture as the “no click”/hold gesture. Once the application is running, a user can connect to the RPi via Bluetooth. The device is named “RPi Mouse”, and the user should be able to connect normally, as to any Bluetooth device. Then, moving the user’s hand in the frame will send Bluetooth commands to move the mouse, and making the click gesture will send a mouse click command.  <br><br>
 
 
@@ -181,7 +182,7 @@ In order to smooth out the movement of the mouse over Bluetooth, we used a tempo
 
       <div style="text-align:center;">
               <h2>Results</h2>
-              <p style="text-align: left;padding: 0px 30px;">
+              <p style="text-align: justify;padding: 0px 30px;">
 	      
 	      The scope of our project changed, gradually but drastically, over the course of the project. The primary shift occurred when we changed the direction of the camera. At that point in the project, we decided to use a static background (the ceiling), instead of a variable background containing the user’s face. This decision was largely made because it made it much easier to distinguish the user’s hand from the background each image frame. It also meant that we could move forward with other methods of hand tracking and identification, other than using the depth of the hand. Because of this change, we did not meet our initial goal of tracking the hand in a dynamic environment, but still met the goal of hand tracking. We also met our goal of simple gesture detection. We are able to detect whether the user is making one of two gestures. Our project was successful in meeting our outlined objectives, and running at a reasonable speed. <br><br>
 
@@ -229,11 +230,13 @@ Removing the arm from the hand image <br>
 
     <hr>
 
-    <div class="row" style="text-align:center;">
+    <div class="row" style="text-align:justify;">
           <h2>Work Distribution</h2>
           <div class="col-md-6" style="font-size:16px">
               <h3>Paolo</h3>
               <p class="lead">pa394@cornell.edu</p>
+Paolo compiled and implemented an optimized version of OpenCV to achieve a ~30% speedup and worked with Mike to debug some problems as a result of the compilation. He incorporated absolute mouse tracking emulation on Raspbian using xdotool, and wrote a Python script using PyGame to demonstrate centroid tracking to move an on-screen sprite. The display of the filtered image and hull on the PiTFT external display, and wrote code to map background subtraction, mouse hold, click gesture set, and bailout functionality on the PiTFT's four buttons. He w
+Investigated GPU speedup, reassigning some blurring operations to take place on the PiCam to hardware to reduce loop runtime. Before we had finalized our hardware to a single PiCam, Paolo wrote code to interface two USB cameras with the Raspberry Pi and OpenCV, and worked with Mike to attempt to implement a stereo camera setup, an approach we ended up scrapping in favor of a single camera setup.
               <p>
 
           </div>
@@ -249,12 +252,13 @@ I started working on this project by experimenting with different edge detection
     <hr>
       <div style="font-size:18px">
           <h2>Parts List</h2>
-          <ul>
+        <ul>
               <li>Raspberry Pi $35.00</li>
-              <li>Raspberry Pi Camera V2 $25.00</li>
-		<li>Adafruit PiTFT $35.00 </li>
+              <li>Raspberry Pi Camera Module V2 $25.00</li>
+			  <li>Adafruit PiTFT $35.00</li>
+
           </ul>
-          <h3>Total: $60.00</h3>
+          <h3>Total: $95.00</h3>
       </div>
       <hr>
       <div style="font-size:18px">
@@ -267,6 +271,7 @@ I started working on this project by experimenting with different edge detection
 
       <div class="row">
               <h2>Code Appendix</h2>
+		  <h3>Test</h3>
               <pre><code>
 // Hello World.c
 int main(){
