@@ -127,7 +127,7 @@
                     #MAIN CODE GOES IN FOR LOOP#
                   cap.release()
                 </pre></code>
-                We explored a number of different resolutions throughout the project, to try to find which resolution would provide all of the necessary details, but which would also allow us to process frames quickly. Through experimentation, we eventually decided to use capture resolutions of (WxH).
+                We explored a number of different resolutions throughout the project, to try to find which resolution would provide all of the necessary details, but which would also allow us to process frames quickly. Through experimentation, we found that a camera capture resolution of 160-by-120 was sufficient to distinguish between the two click states, and offered very low latency.
                 <br>
                 <h3>Image Processing Methods</h3>
                 <br> We started the process of mapping hand movements to mouse gestures by first attempting to identify a hand in an arbitrary environment. This task was much more difficult than we had expected, and eventually we constrained ourselves to identifying the user’s hand in front of a static background. However, we first explored a number of options for hand identification. We started by exploring various edge detection operations, finding the most success with the Sobel operator. We also explored the Laplacian operator, but found it produced significantly more noise.
