@@ -51,8 +51,7 @@
                     <li><a href="#obj">Project Objectives</a></li>
                     <li><a href="#design">Design</a></li>
                     <li><a href="#implementation">Implementation</a></li>
-                    <li><a href="#result">Result</a></li>
-                    <li><a href="#conclusions">Conclusions</a></li>
+                    <li><a href="#result">Results and Conclusion</a></li>
                 </ul>
             </div>
             <!--/.nav-collapse -->
@@ -83,14 +82,15 @@
             <h2>Introduction</h2>
             <p style="text-align: justify;padding: 0px 0px;">
 
-              previous projects that have implemented a gesture-based interface have used smart gloves and colored tape to make the fingers easier to track. We wanted to be able to realize gesture based control simply, and in the most organic way possible.
-              For us, this meant tracking the actual hand with no additional help or hardware. We wanted to
+              Previous projects that have implemented a gesture-based interface use smart gloves and colored tape to make the fingers easier to track. We wanted to be able to realize gesture based control simply, and in the most organic way possible.
+              For us, this meant tracking the actual hand with no additional hardware. We
 
-              processing is done on a computer whose minimum specifications are consistent with the performace of an Intel I3 processor.
-              We wanted to do all
-              with a single Raspberry Pi and camera -- the simplest possible hardware setup. We added a PiTFT to act as a convenient user interface, and to show the realtime image processing performed on the Raspberry Pi.
-
-                For this project, we used a Raspberry Pi and gesture detection with OpenCV to emulate a Bluetooth mouse. The Raspberry Pi has a PiCam attachment, and captures continuous frames. The camera faces upwards, and the image of the blank ceiling is stored, and removed from all of the successive frames. Each frame is processed to detect the hand, and which of two gestures that the user is making. The motion of the hand, and the gestures are analyzed to send Bluetooth mouse commands to a remote machine.
+              Leap Motion Controller is that none of the intensive processing is done on the actual device; rather it is consigned to a computer whose minimum specifications are consistent with the performace of an Intel I3 processor.
+              We wanted to do all the processing <em>in situ</em>. the simplest we could think of: just a single Raspberry Pi and camera module. We added a PiTFT to act as a convenient user interface, and to demonstrate the computational abiity of the Raspberry Pi by showing the output of the realtime image processing.
+              <br><br>
+              We also wanted to leverage the Bluetooth capability of the Raspberry Pi. Our project tricks a host computer into thinking that the Raspberry Pi is a Bluetooth mouse. Using this scheme, the mouse on any Bluetooth-enabled desktop computer or laptop can be controlled using hand movements.
+              <br><br>
+              Towards a more organic setup, we wanted to do minimize background control. A simple solution to avoid having to process a noisy background is to point the camera upwards. Weand the image of the blank ceiling is stored, and removed from all of the successive frames. Each frame is processed to detect the hand, and which of two gestures that the user is making. The motion of the hand, and the gestures are analyzed to send Bluetooth mouse commands to a remote machine.
             </p>
         </div>
 
@@ -111,10 +111,27 @@
         <div style="text-align:justify;">
             <h2>Design Process and Testing</h2>
             <p style="text-align: justify;padding: 0px 30px;">
-              <h3>Related Work</h3>
+                When starting the project, we experimented with OpenCV on both our laptops and on the Raspberry Pi. We began on the Pi by simply reading frames from the PiCam.
+                <pre><code>
+                  #Import required libraries for PiCamera
+                  from picamera.array import PiRGBArray
+                  from picamera import PiCamera
 
-                When starting the project, we experimented with OpenCV on both our laptops and on the Raspberry Pi. We began on the Pi by simply reading frames from the PiCam. [Code Listing] We explored a number of different resolutions throughout the project, to try to find which resolution would provide all of the necessary details, but which would also allow us to process frames quickly. Through experimentation, we eventually decided to use capture resolutions of (WxH).
+                  #Initialize Picam, turn off automatic exposure adjustments
+                  camera = PiCamera()
+                  camera.resolution = (160*resScale, 120*resScale)
+                  camera.framerate = 30
+                  camera.exposure_mode = 'off'
+                  rawCapture = PiRGBArray(camera, size=(160*resScale, 120*resScale))
+
+                  #Capture frames from PiCamera
+                  for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
+                    #MAIN CODE GOES IN FOR LOOP#
+                  cap.release()
+                </pre></code>
+                We explored a number of different resolutions throughout the project, to try to find which resolution would provide all of the necessary details, but which would also allow us to process frames quickly. Through experimentation, we eventually decided to use capture resolutions of (WxH).
                 <br>
+                <h3>Image Processing Methods</h3>
                 <br> We started the process of mapping hand movements to mouse gestures by first attempting to identify a hand in an arbitrary environment. This task was much more difficult than we had expected, and eventually we constrained ourselves to identifying the user’s hand in front of a static background. However, we first explored a number of options for hand identification. We started by exploring various edge detection operations, finding the most success with the Sobel operator. We also explored the Laplacian operator, but found it produced significantly more noise.
                 <br>
                 <br> [Laplacian and Sobel kernels]
@@ -147,7 +164,9 @@
                 <br>
                 <br> [Hand image on ceiling background subtracted]
                 <br>
-                <br> With this setup we were able to identify the edges of the user’s hand and arm. To track the movement of the hand, we computed the center of mass of the edge image <var>(cx,cy)</var> using OpenCV moment calculations:
+                <br> With this setup we were able to identify the edges of the user’s hand and arm.
+                <h3>Tracking Hand Movement</h3>
+                To track the movement of the hand, we computed the center of mass of the edge image <var>(cx,cy)</var> using OpenCV moment calculations:
                 <pre><code>
                   M = cv2.moments(frame)
                   if M['m00'] != 0:
@@ -191,9 +210,7 @@
                 We found that our system performs best when moving the mouse with an open hand gesture, and clicking by pointing the index finger. These two gestures are far enough apart form each other that their convex hulls (characterized by a heptagon and triangle, respectively) can robustly identify each gesture state.
                 <br>
 
-                <h3 align="left">Emulating A Mouse Over Bluetooth</h3> Once we settled on a gesture identification method, we moved on to implementing Bluetooth mouse emulation. We did so by building on <a href="https://github.com/mlabviet/BL_keyboard_RPI">a GitHub project </a>, and by consulting a number of references (We found support for emulating a Bluetooth keyboard, but much less for mouse emulation). After some research, we set up a Bluetooth mouse emulation server using DBus, which would allow another python script or other entity to set mouse button press information and relative horizontal and vertical movement. [Code Listing] We added these calls to the code which managed the PiCamera image processing, and were able to control the mouse of a different device by moving a hand in from of the PiCam.
-                <br>
-                <br> [### MULTITHREADING STUFF HERE ###]
+                <h3 align="left">Emulating A Mouse Over Bluetooth</h3> Once we settled on a gesture identification method, we moved on to implementing Bluetooth mouse emulation. We did so by building on <a href="https://github.com/mlabviet/BL_keyboard_RPI">a GitHub project </a>, and by consulting a number of references (We found support for emulating a Bluetooth keyboard, but much less for mouse emulation). After some research, we set up a Bluetooth mouse emulation server using DBus, which would allow another Python script or other entity to set mouse button press information and relative horizontal and vertical movement. [Code Listing] We added these calls to the code which managed the PiCamera image processing, and were able to control the mouse of a different device by moving a hand in from of the PiCam.
                 <br>
                 <br>
 
@@ -302,13 +319,11 @@
 
                         <h3 align="left">Opportunities for Improvement</h3>
                         <p style="text-align: justify;padding: 0px 30px;">
-
-                        <strong>More optimization</strong>
-                            <br> Better gesture control
-                            <br> More gestures
-                            <br> Removing the arm from the hand image
-                            <br> Another issue we encountered late in the project was creating smooth mouse motion. We also found that using center of mass detection worked well for mouse motion, but could cause abrupt mouse movement when the user changed gestures, since the shape of the object of interest (the hand/arm) would change with the gesture. We implemented a system to ignore movement while the gesture was changing, however, the detection of a gesture change and movement of the center of mass did not always align. We also wanted to determine a method for tracking the hand and ignoring the arm, but were unable to determine an appropriate method to distinguish the arm from the hand.
-
+                            <h4> More Precise Gesture Control </h4>
+                            An issue we encountered late in the project was creating smooth mouse motion. We found that using center of mass detection worked well for mouse motion, but could cause abrupt mouse movement when the user changed gestures, since the shape of the object of interest (the hand/arm) would change with the gesture. We implemented a system to ignore movement while the gesture was changing, however, the detection of a gesture change and movement of the center of mass did not always align. We also wanted to determine a method for tracking the hand and ignoring the arm, but were unable to determine an appropriate method to distinguish the arm from the hand.
+                            <br> <br>
+                            <h4> Camera with Wider Field-of-View </h4>
+                            The ideal placement for this device is on the same level as your laptop. Using the PiCamera module, the mouse could not be fully moved across the laptop screen because the field-of-view of the camera was too narrow. The device had to be placed several inches below the base of the laptop in order for it to work comfortably. This kind of application would benefit from a camera with a much wider FOV.
                             <br>
 
                         </p>
