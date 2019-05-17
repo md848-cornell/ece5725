@@ -9,9 +9,9 @@ body {
 
 hr { margin: 20px 0 20px 0; }
 
-.center-block {  
+.center-block {
     width:640px;
-  display: block;  
-  margin-right: auto;  
-  margin-left: auto;  
+  display: block;
+  margin-right: auto;
+  margin-left: auto;
 }  
