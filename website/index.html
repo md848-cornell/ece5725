@@ -176,23 +176,36 @@
                 <br>
                 <br>
 
-                <h3 align="left">Optimizing OpenCV</h3>
-                The way in which we filtered the image, detected the gesture, and emulated the mouse did not leave much room for concurrency or parallelization, which means that using multithreading and multiprocessing modules would not have led to that much speedup. We were looking for rapid execution of sequential OpenCV operations. To achieve this, as per a <a href="https://www.pyimagesearch.com/2017/10/09/optimizing-opencv-on-the-raspberry-pi/"> 2017 article by Adrian Rosebrock, </a> an optimized version of OpenCV was installed. Simply put, the optimized version of OpenCV runs faster by taking advantage of
-
-
-
                 In order to smooth out the movement of the mouse over Bluetooth, we used a temporal filter. We implemented this by creating a list of mouse states. Every time the user’s hand moved, the relative motion was added to the list, as well as whether or not the gesture was a mouse click. The average of these values was used as the as the input to the Bluetooth socket. The resulting behavior was a slight delay, since behavior from previous frames influenced the action taken on the current frame. However, the mouse movement was smoother in general, since it was slightly denoised. Additionally, the delay introduced was not a real time delay, but the result of using a low pass filter on values which have already happened.
+
+                <h3 align="left">Optimizing OpenCV</h3>
+                The way in which we filtered the image, detected the gesture, and emulated the mouse did not leave much room for concurrency or parallelization, which means that using multithreading and multiprocessing modules would not have led to that much speedup. We were looking for rapid execution of sequential OpenCV operations. To achieve this, as per a <a href="https://www.pyimagesearch.com/2017/10/09/optimizing-opencv-on-the-raspberry-pi/"> 2017 article by Adrian Rosebrock, </a> an optimized version of OpenCV was installed. Simply put, the optimized version of OpenCV runs faster by taking advantage of the <a href="https://developer.arm.com/architectures/instruction-sets/simd-isas/neon">ARM NEON</a> architecture (an optimization extension for ARM processors designed to faster image processing), and <a href="https://www.pyimagesearch.com/2017/10/09/optimizing-opencv-on-the-raspberry-pi/"> VFPV3</a> (a floating point optimization). Both of these capabilities are built into the Raspberry Pi.
                 <br>
                 <br>
+                The procedure for installing this optimized version of OpenCV is virtually identical to that of installing the regular version; any tutorial describing the process can be followed. The only change occurs at the <code>cmake</code> command:
+                <pre><code>
+                  $ cd ~/opencv-3.3.0/
+                  $ mkdir build
+                  $ cd build
+                  $ cmake -D CMAKE_BUILD_TYPE=RELEASE \
+                      -D CMAKE_INSTALL_PREFIX=/usr/local \
+                      -D OPENCV_EXTRA_MODULES_PATH=~/opencv_contrib-3.3.0/modules \
+                      -D ENABLE_NEON=ON \
+                      -D ENABLE_VFPV3=ON \
+                      -D BUILD_TESTS=OFF \
+                      -D INSTALL_PYTHON_EXAMPLES=OFF \
+                      -D BUILD_EXAMPLES=OFF ..
+                </code></pre>
+                Note that the <code>ENABLE_NEON</code> and <code>ENABLE_VFPV3</code> flags are flipped on.
 
             </p>
         </div>
 
         <hr id='implementation'>
 
-        <div style="text-align:center;">
+        <div style="text-align:left;">
             <h2>Implementation</h2>
-            <p style="text-align: justify;padding: 0px 30px;">
+            <p style="text-align: justify;padding: 0px 0px;">
                 Our final demonstration system was implemented with a Raspberry Pi, PiCam, and PiTFT. When the user powers on the system, the applications starts immediately, and performs background subtraction to compensate for whatever background it is facing. After this, the user can press the 27 button on the PiTFT to quit the application, the 23 button on the PiTFT to use the current frame for future background subtraction, the 22 button on the PiTFT to record the current gesture as the “click” gesture, and the 17 button on the PiTFT to record the current gesture as the “no click”/hold gesture. Once the application is running, a user can connect to the RPi via Bluetooth. The device is named “RPi Mouse”, and the user should be able to connect normally, as to any Bluetooth device. Then, moving the user’s hand in the frame will send Bluetooth commands to move the mouse, and making the click gesture will send a mouse click command.
                 <br>
                 <br>
@@ -208,7 +221,7 @@
 
         <div style="text-align:left;">
             <h2>Results</h2>
-            <p style="text-align: justify;padding: 0px 30px;">
+            <p style="text-align: justify;padding: 0px 0px;">
 
                 The scope of our project changed, gradually but drastically, over the course of the project. The primary shift occurred when we changed the direction of the camera. At that point in the project, we decided to use a static background (the ceiling), instead of a variable background containing the user’s face. This decision was largely made because it made it much easier to distinguish the user’s hand from the background each image frame. It also meant that we could move forward with other methods of hand tracking and identification, other than using the depth of the hand. Because of this change, we did not meet our initial goal of tracking the hand in a dynamic environment, but still met the goal of hand tracking. We also met our goal of simple gesture detection. We are able to detect whether the user is making one of two gestures. Our project was successful in meeting our outlined objectives, and running at a reasonable speed.
                 <br>
@@ -221,7 +234,7 @@
 
         <hr id='conclusions'>
 
-        <div style="text-align:center;">
+        <div style="text-align:left;">
             <h2>Conclusions</h2>
             <p style="text-align: left;padding: 0px 30px;">
 
@@ -266,7 +279,7 @@
             <div class="col-md-6" style="font-size:16px">
                 <h3>Paolo</h3>
                 <p class="lead">pa394@cornell.edu</p>
-                Paolo compiled and implemented an optimized version of OpenCV to achieve a ~30% speedup and worked with Mike to debug some problems as a result of the compilation. He incorporated absolute mouse tracking emulation on Raspbian using xdotool, and wrote a Python script using PyGame to demonstrate centroid tracking to move an on-screen sprite. The display of the filtered image and hull on the PiTFT external display, and wrote code to map background subtraction, mouse hold, click gesture set, and bailout functionality on the PiTFT's four buttons. He w Investigated GPU speedup, reassigning some blurring operations to take place on the PiCam to hardware to reduce loop runtime. Before we had finalized our hardware to a single PiCam, Paolo wrote code to interface two USB cameras with the Raspberry Pi and OpenCV, and worked with Mike to attempt to implement a stereo camera setup, an approach we ended up scrapping in favor of a single camera setup.
+                Paolo compiled and implemented an optimized version of OpenCV to achieve an estimated ~30% speedup and worked with Mike to debug some SYMLINK problems as a result of the compilation. He incorporated absolute mouse tracking emulation on Raspbian using <code>xdotool</code>, and wrote a Python script using PyGame to demonstrate centroid tracking to move an on-screen sprite. He worked with Mike to display the filtered image and hull on the PiTFT external display, and wrote code to map background subtraction, mouse hold, click gesture set, and bailout functionality on the PiTFT's four buttons. He also investigated potential for GPU speedup, reassigning some blurring operations to take place on the PiCam to hardware to reduce code runtime. Before we had finalized our hardware to a single PiCam, Paolo wrote code to interface two USB cameras with the Raspberry Pi and OpenCV, and worked with Mike to attempt to implement a stereo camera setup, an approach we ended up scrapping in favor of a single camera setup.
                 <p>
 
             </div>
@@ -274,7 +287,7 @@
                 <h3>Mike</h3>
                 <p class="lead">md848@cornell.edu</p>
                 <p>
-                    Mike started working on this project by experimenting with different edge detection methods. Mike explored different filters and techniques, as well as different parameters and thresholds. Mike also experimented with many different variations of hand detection algorithms, including calibration to the skin color of the user using region growing, and generating edge images with HSV format images instead of RGB format images. Mike also wrote some code, and worked with Paolo on different depth detection methods. Mike implemented center of mass object tracking, and worked with Paolo to develop a good method of background subtraction. Paolo and Mike worked together to build and compile the optimized OpenCV library, and I modified the Bluetooth keyboard emulation project to instead emulate a Bluetooth mouse with commands sent from an external Python script.
+                    Mike started working on this project by experimenting with different edge detection methods. Mike explored different filters and techniques, as well as different parameters and thresholds. Mike also experimented with many different variations of hand detection algorithms, including calibration to the skin color of the user using region growing, and generating edge images with HSV format images instead of RGB format images. Mike also wrote some code, and worked with Paolo on different depth detection methods. Mike implemented center of mass object tracking, and worked with Paolo to develop a good method of background subtraction. Paolo and Mike worked together to build and compile the optimized OpenCV library, and Mike modified the Bluetooth keyboard emulation project to instead emulate a Bluetooth mouse with commands sent from an external Python script.
 
             </div>
         </div>
@@ -303,7 +316,7 @@
         <h2>Code Appendix</h2>
         <div class="row">
             <h3>start.sh</h3>
-            <samp><code>
+            <pre><code>
               #Stop the background process
               sudo /etc/init.d/bluetooth stop
               # Turn on Bluetooth
@@ -327,7 +340,7 @@
                   tmux send-keys -t mlabviet:os.2 'cd $C_PATH && sudo /usr/bin/bluetoothctl' C-m
                   echo "tmux done"
               fi
-              </code></samp>
+            </code></pre>
         </div>
 
         <div class="row">
