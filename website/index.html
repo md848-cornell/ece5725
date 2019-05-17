@@ -42,7 +42,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">Project name</a>
+          <a class="navbar-brand" href="#">Gesture Controlled Mouse</a>
         </div>
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
@@ -77,7 +77,7 @@
       <div style="text-align:center;">
               <h2>Introduction</h2>
               <p style="text-align: justify;padding: 0px 30px;">
-	     For this project, we used a Raspberry Pi and gesture detection with OpenCV to emulate a Bluetooth mouse. The Raspberry Pi has a PiCam attachment, and captures continuous frames. The camera faces upwards, and the image of the blank ceiling is stored, and removed from all of the successive frames. Each frame is processed to detect the hand, and which of two gestures that the user is making. The motion of the hand, and the gestures are analyzed to send Bluetooth mouse commands to a remote machine.  
+	     For this project, we used a Raspberry Pi and gesture detection with OpenCV to emulate a Bluetooth mouse. The Raspberry Pi has a PiCam attachment, and captures continuous frames. The camera faces upwards, and the image of the blank ceiling is stored, and removed from all of the successive frames. Each frame is processed to detect the hand, and which of two gestures that the user is making. The motion of the hand, and the gestures are analyzed to send Bluetooth mouse commands to a remote machine.
 	      </p>
       </div>
 
@@ -159,7 +159,7 @@ Once we settled on a gesture identification method, we moved on to implementing 
 [### CV OPTIMIZATION STUFF HERE ###]<br><br>
 
 In order to smooth out the movement of the mouse over Bluetooth, we used a temporal filter. We implemented this by creating a list of mouse states. Every time the user’s hand moved, the relative motion was added to the list, as well as whether or not the gesture was a mouse click. The average of these values was used as the as the input to the Bluetooth socket. The resulting behavior was a slight delay, since behavior from previous frames influenced the action taken on the current frame. However, the mouse movement was smoother in general, since it was slightly denoised. Additionally, the delay introduced was not a real time delay, but the result of using a low pass filter on values which have already happened. <br><br>
-	
+
 
 	      </p>
       </div>
@@ -174,7 +174,7 @@ In order to smooth out the movement of the mouse over Bluetooth, we used a tempo
 
 <img class="img-rounded" src="pics/system.jpg" alt="Working System" style="width:80%;">
 <br><br>
- 
+
 	      </p>
       </div>
 
@@ -183,7 +183,7 @@ In order to smooth out the movement of the mouse over Bluetooth, we used a tempo
       <div style="text-align:center;">
               <h2>Results</h2>
               <p style="text-align: justify;padding: 0px 30px;">
-	      
+
 	      The scope of our project changed, gradually but drastically, over the course of the project. The primary shift occurred when we changed the direction of the camera. At that point in the project, we decided to use a static background (the ceiling), instead of a variable background containing the user’s face. This decision was largely made because it made it much easier to distinguish the user’s hand from the background each image frame. It also meant that we could move forward with other methods of hand tracking and identification, other than using the depth of the hand. Because of this change, we did not meet our initial goal of tracking the hand in a dynamic environment, but still met the goal of hand tracking. We also met our goal of simple gesture detection. We are able to detect whether the user is making one of two gestures. Our project was successful in meeting our outlined objectives, and running at a reasonable speed. <br><br>
 
 The main performance issue we encountered (throughout the project) was image noise. We found it somewhat difficult to denoise the image spatially, but had some success. Toward the end of the project, when we had built a working system, we had difficulty with temporal noise. Small changes from one frame to another could cause large mouse movements, as well as “phantom” clicking or unclicking. It was not possible to implement any normal filtering operations, since they would have introduced delay into system, would have diminished the user experience. We attempted to use temporal filtering with some success, but with some delay. This problem resulting in a user interface that was not as smooth as we would have hoped. <br><br>
@@ -212,7 +212,7 @@ At the start of the project, we experimented with a number of different methods 
 We next tried to use depth detection to identify the hand, since the hand was likely to be the closest object to the camera. Without a stereo camera, we attempted to use two cameras side by side, but between aligning them physically and the differences in noise, we were unable to create a usable depth image using the tools built in to OpenCV. <br><br>
 
 Another issue we encountered late in the project was creating smooth mouse motion. We also found that using center of mass detection worked well for mouse motion, but could cause abrupt mouse movement when the user changed gestures, since the shape of the object of interest (the hand/arm) would change with the gesture. We implemented a system to ignore movement while the gesture was changing, however, the detection of a gesture change and movement of the center of mass did not always align. We also wanted to determine a method for tracking the hand and ignoring the arm, but were unable to determine an appropriate method to distinguish the arm from the hand. <br><br>
- 
+
 
 Future Work:<br><br>
 
@@ -244,7 +244,7 @@ Investigated GPU speedup, reassigning some blurring operations to take place on 
               <h3>Mike</h3>
               <p class="lead">md848@cornell.edu</p>
               <p>
-I started working on this project by experimenting with different edge detection methods. I explored different filters and techniques, as well as different parameters and thresholds. I also experimented with many different variations of hand detection algorithms, including calibration to the skin color of the user using region growing, and generating edge images with HSV format images instead of RGB format images. I also wrote some code, and worked with Paolo on different depth detection methods. I implemented center of mass object tracking, and worked with Paolo to develop a good method of background subtraction. Paolo and I worked together to build and compile the optimized OpenCV library, and I modified the Bluetooth keyboard emulation project to instead emulate a Bluetooth mouse with commands sent from an external python script. 
+I started working on this project by experimenting with different edge detection methods. I explored different filters and techniques, as well as different parameters and thresholds. I also experimented with many different variations of hand detection algorithms, including calibration to the skin color of the user using region growing, and generating edge images with HSV format images instead of RGB format images. I also wrote some code, and worked with Paolo on different depth detection methods. I implemented center of mass object tracking, and worked with Paolo to develop a good method of background subtraction. Paolo and I worked together to build and compile the optimized OpenCV library, and I modified the Bluetooth keyboard emulation project to instead emulate a Bluetooth mouse with commands sent from an external python script.
 
           </div>
       </div>
