@@ -106,6 +106,7 @@
         <div style="text-align:center;">
             <h2>Design Process and Testing</h2>
             <p style="text-align: justify;padding: 0px 30px;">
+              <h3>Related Work</h3>
 
                 When starting the project, we experimented with OpenCV on both our laptops and on the Raspberry Pi. We began on the Pi by simply reading frames from the PiCam. [Code Listing] We explored a number of different resolutions throughout the project, to try to find which resolution would provide all of the necessary details, but which would also allow us to process frames quickly. Through experimentation, we eventually decided to use capture resolutions of (WxH).
                 <br>
@@ -150,7 +151,12 @@
                 <br>
                 <br>
 
-                <h3 align="left">Gesture Classification by Polygon Matching</h3> [images of the gestures we chose (edge images should be fine)]
+                <h3 align="left">Gesture Classification by Polygon Matching</h3>
+                After applying the necessary image processing algorithms to yield a clear outline of the hand,
+
+                the convex hull of the filtered image.
+
+
                 <br>
                 <br>
 
@@ -254,7 +260,7 @@
                 <h3>Mike</h3>
                 <p class="lead">md848@cornell.edu</p>
                 <p>
-                    I started working on this project by experimenting with different edge detection methods. I explored different filters and techniques, as well as different parameters and thresholds. I also experimented with many different variations of hand detection algorithms, including calibration to the skin color of the user using region growing, and generating edge images with HSV format images instead of RGB format images. I also wrote some code, and worked with Paolo on different depth detection methods. I implemented center of mass object tracking, and worked with Paolo to develop a good method of background subtraction. Paolo and I worked together to build and compile the optimized OpenCV library, and I modified the Bluetooth keyboard emulation project to instead emulate a Bluetooth mouse with commands sent from an external python script.
+                    Mike started working on this project by experimenting with different edge detection methods. Mike explored different filters and techniques, as well as different parameters and thresholds. Mike also experimented with many different variations of hand detection algorithms, including calibration to the skin color of the user using region growing, and generating edge images with HSV format images instead of RGB format images. Mike also wrote some code, and worked with Paolo on different depth detection methods. Mike implemented center of mass object tracking, and worked with Paolo to develop a good method of background subtraction. Paolo and Mike worked together to build and compile the optimized OpenCV library, and I modified the Bluetooth keyboard emulation project to instead emulate a Bluetooth mouse with commands sent from an external python script.
 
             </div>
         </div>
