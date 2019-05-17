@@ -66,21 +66,30 @@
             ECE 5725: Design with Embedded Operating Systems <br>
             School of Electrical and Computer Engineering <br>
             Cornell University <br>
-            <p class="lead">Paolo Arguelles (pa394)
-                <br> Mike DiDomenico (md848)</p>
+            <br>
+            <p class="lead">Paolo Arguelles (pa394@cornell.edu)<br>
+              Mike DiDomenico (md848@cornell.edu)</p>
         </div>
 
         <hr>
         <div class="center-block">
+            <h2 style="text-align:center;">Demonstration</h2>
             <iframe width="640" height="360" src="https://www.youtube.com/embed/UoreiybfaIM" frameborder="0" allowfullscreen></iframe>
-            <h4 style="text-align:center;">Demonstration Video</h4>
         </div>
 
         <hr id="intro">
 
-        <div style="text-align:center;">
+        <div style="text-align:left;">
             <h2>Introduction</h2>
-            <p style="text-align: justify;padding: 0px 30px;">
+            <p style="text-align: justify;padding: 0px 0px;">
+
+              previous projects that have implemented a gesture-based interface have used smart gloves and colored tape to make the fingers easier to track. We wanted to be able to realize gesture based control simply, and in the most organic way possible.
+              For us, this meant tracking the actual hand with no additional help or hardware. We wanted to
+
+              processing is done on a computer whose minimum specifications are consistent with the performace of an Intel I3 processor.
+              We wanted to do all
+              with a single Raspberry Pi and camera -- the simplest possible hardware setup. We added a PiTFT to act as a convenient user interface, and to show the realtime image processing performed on the Raspberry Pi.
+
                 For this project, we used a Raspberry Pi and gesture detection with OpenCV to emulate a Bluetooth mouse. The Raspberry Pi has a PiCam attachment, and captures continuous frames. The camera faces upwards, and the image of the blank ceiling is stored, and removed from all of the successive frames. Each frame is processed to detect the hand, and which of two gestures that the user is making. The motion of the hand, and the gestures are analyzed to send Bluetooth mouse commands to a remote machine.
             </p>
         </div>
@@ -131,7 +140,6 @@
                 <br>
                 <br> We attempted to use a similar algorithm, but one which used edges generated not from a grayscale image, but from each of the hue, saturation, and value representation of the image. The idea behind this strategy was that hue segmentation/edges would separate the user from the background, and that saturation/value would separate the hand from the face, since the lighting was slightly different on each part of the body. While this seemed promising at first, it was unreliable in different lighting, and had highly variable performance. [Code reference]
                 <br>
-                <br> [### IR STUFF HERE ###]
                 <br>
                 <br> Our last attempt to distinguish a user’s hand from an arbitrary background was using depth detection, under the assumption that in general, the user’s hand would be closer to the camera than any other objects in the frame. We used a variety of techniques included in OpenCV, but found quickly that it was very difficult to align two cameras to act as a stereo camera, as we had planned. In the end, we found that there was too much noise in our camera setup to validate depth detection, and we decided to change our approach. [Code reference]
                 <br>
@@ -139,7 +147,14 @@
                 <br>
                 <br> [Hand image on ceiling background subtracted]
                 <br>
-                <br> With this setup we were able to identify the edges of the user’s hand and arm. To track the movement of the hand, we computed the center of mass of the edge image using OpenCV moment calculations. By keeping track of the center of mass of the hand, we could effectively track the motion of the hand, in a way that was sufficient for our purposes. One of the problems with this approach was that the arm would interfere with the center of mass of the hand when the arm is in a significant part of the frame. However, we expected that we would be able to overcome the issue by either ignoring the arm, or constraining the camera so that the user’s hand would not move far enough into the frame to significantly interfere with the center of mass. [Code reference]
+                <br> With this setup we were able to identify the edges of the user’s hand and arm. To track the movement of the hand, we computed the center of mass of the edge image <var>(cx,cy)</var> using OpenCV moment calculations:
+                <pre><code>
+                  M = cv2.moments(frame)
+                  if M['m00'] != 0:
+                      cx = int(M['m10']/M['m00'])
+                      cy = int(M['m01']/M['m00'])
+                </code></pre>
+                 By keeping track of the center of mass of the hand, we could effectively track the motion of the hand, in a way that was sufficient for our purposes. One of the problems with this approach was that the arm would interfere with the center of mass of the hand when the arm is in a significant part of the frame. However, we expected that we would be able to overcome the issue by either ignoring the arm, or constraining the camera so that the user’s hand would not move far enough into the frame to significantly interfere with the center of mass. [Code reference]
                 <br>
                 <br> [Hand image with center of mass marked]
                 <br>
@@ -158,7 +173,7 @@
                 _,contours,h = cv2.findContours(frame,  cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
                 </code></pre>
 
-                From the contours, OpenCV calculated a convex hull (i.e., a polygon which encompasses the boundary of the shape)
+                From the contours, OpenCV calculated a convex hull (i.e., a polygon which encompasses the boundary of the shape):
                 <pre><code>
                 cnts = np.vstack([contours[i] for i in range(len(contours))])
                 hull = cv2.convexHull(cnts)
@@ -167,7 +182,13 @@
                 f = cv2.drawContours(f, [hull], 0, hullColor, 5)
                 </code></pre>
 
+                Considering the needs of this project, we would only need to distinguish between two gesture states: one mapped to a "mouse button up" state, the other mapped to a "mouse button down" or "click initiate" state. While other gesture recognition projects would need to obtain the "convex hull defects" in order to locate the valleys between the fingers, we found that this can be avoided by working with gestures different enough that their uniqueness may be characterized by their convex hull alone. Skipping the standard "convex hull defects" step would also cut down on processing time, a much needed resource for real time applications such as this.
+                We decided to map a "point" gesture to a "mouse down" operation. All other gestures would map to a "mouse up" state. Polygon matching is performed in OpenCV by:
+                <pre><code> matches = cv2.matchShapes(hull,matchContour[1],cv2.CONTOURS_MATCH_I2,0) </code></pre>
+                When <code>matches</code> is printed, the console outputs a floating point number characterizing the similarity of the two polygons. Numbers closer to 0 indicate increasing similarity.
                 <br>
+
+                We found that our system performs best when moving the mouse with an open hand gesture, and clicking by pointing the index finger. These two gestures are far enough apart form each other that their convex hulls (characterized by a heptagon and triangle, respectively) can robustly identify each gesture state.
                 <br>
 
                 <h3 align="left">Emulating A Mouse Over Bluetooth</h3> Once we settled on a gesture identification method, we moved on to implementing Bluetooth mouse emulation. We did so by building on <a href="https://github.com/mlabviet/BL_keyboard_RPI">a GitHub project </a>, and by consulting a number of references (We found support for emulating a Bluetooth keyboard, but much less for mouse emulation). After some research, we set up a Bluetooth mouse emulation server using DBus, which would allow another python script or other entity to set mouse button press information and relative horizontal and vertical movement. [Code Listing] We added these calls to the code which managed the PiCamera image processing, and were able to control the mouse of a different device by moving a hand in from of the PiCam.
@@ -206,7 +227,19 @@
         <div style="text-align:left;">
             <h2>Implementation</h2>
             <p style="text-align: justify;padding: 0px 0px;">
-                Our final demonstration system was implemented with a Raspberry Pi, PiCam, and PiTFT. When the user powers on the system, the applications starts immediately, and performs background subtraction to compensate for whatever background it is facing. After this, the user can press the 27 button on the PiTFT to quit the application, the 23 button on the PiTFT to use the current frame for future background subtraction, the 22 button on the PiTFT to record the current gesture as the “click” gesture, and the 17 button on the PiTFT to record the current gesture as the “no click”/hold gesture. Once the application is running, a user can connect to the RPi via Bluetooth. The device is named “RPi Mouse”, and the user should be able to connect normally, as to any Bluetooth device. Then, moving the user’s hand in the frame will send Bluetooth commands to move the mouse, and making the click gesture will send a mouse click command.
+                Our final demonstration system was implemented with a Raspberry Pi, PiCam, and PiTFT. When the user powers on the system, the applications starts immediately, and performs background subtraction to compensate for whatever background it is facing.
+                <br><br>
+                <em><strong>SET CLICK GESTURE (BUTTON 22)</strong></em>
+                - The user can press button 22 on the PiTFT to designate a gesture as the "click" or "mouse down" state. Once set, the convex hull will turn green to indicate that a click state has been detected.
+                <br><br>
+                <em><strong>RESET BACKGROUND SUBTRACTION (BUTTON 23)</strong></em>
+                - If the camera placement has been perturbed since program start, the image on the PiTFT may show residual edges consistent with the background. Pressing button 23 on the PiTFT will reset the background image based on the new camera placement. Users should take care not to let any part of their body enter the frame as the new background is recorded.
+                <br><br>
+                <em><strong>HOLD CURSOR (BUTTON 17)</strong></em>
+                - If the user decides to momentarily transfer control of their mouse back to the trackpad (and temporarily disengage the mouse emulation activity from the Raspberry Pi), we have implemented button 17 as a "hold" button. Pressing this button once toggles a "hold" state, which will allow the user to control their computer normally. Pressing the button again brings the system out of its "held" state. It should be noted that the system still operates normally while in its hold state; all the mouse emulation activities are simply overidden as if no motion is being detected.
+                <br><br>
+                <em><strong>BAILOUT (BUTTON 27)</strong></em>
+                - The script will exit upon button press.
                 <br>
                 <br>
 
@@ -234,31 +267,38 @@
 
         <hr id='conclusions'>
 
-        <div style="text-align:left;">
+        <div style="text-align:justify;">
             <h2>Conclusions</h2>
-            <p style="text-align: left;padding: 0px 30px;">
+            <p style="text-align: justify;padding: 0px 30px;">
 
-                <h3 align="left">What Worked</h3>
+                <h3 align="left">What Worked Well</h3>
                 <p style="text-align: justify;padding: 0px 0px;">
+                  <h4>Sobel and Mean Filtering</h4>
+                  We found Sobel and mean filtering to be a simple and minimally calculation intensive method to extract the contours of the hand.
 
+                      <br><br>
+
+                  <h4>Upward Camera Placement</h4>
                     When we decided to orient the camera upwards, we needed a way to remove edges in the background from the image. We did so by capture a frame on startup, and subtracting the edge image of that frame from every subsequent image. This method of background subtraction sometimes removed edges of the hand that were overlaid on edges of the background, but worked well for our purposes. After experimenting with different hand tracking methods, we found that tracking the center of mass of the edge image worked well enough for controlling mouse movement; only later did we have some problems when we introduced clicking.
-                    <br>
-                    <br> Our shape matching gesture detection system worked well after we had constrained ourselves to certain gestures. [NEED MORE OF HERE]
-                    <br>
-                    <br> We built a bluetooth mouse emulation service on a GitHub project that emulated a Bluetooth keyboard. This project ran a DBus server, and when the user input a keystroke, it would forward that keystroke over Bluetooth. We changed this project so that instead of emulating a keyboard, the software emulated a mouse, which was more involved than we expected, since it was somewhat challenging to find the documentation for HID control codes. We got this project working as a mouse emulation server, which any python script could send commands to, which made it easy to incorporate into our project.
-                    <br>
+                    <br><br>
+
+                  <h4>Gesture Classification with Polygon Matching</h4>
+                    Our shape matching gesture detection system worked well after we had constrained ourselves to certain gestures.
+                    <br><br>
+                    <h4>Mouse Emulation Over Bluetooth</h4>
+                    We built a bluetooth mouse emulation service on a GitHub project that emulated a Bluetooth keyboard. This project ran a DBus server, and when the user input a keystroke, it would forward that keystroke over Bluetooth. We changed this project so that instead of emulating a keyboard, the software emulated a mouse, which was more involved than we expected, since it was somewhat challenging to find the documentation for HID control codes. We got this project working as a mouse emulation server, which any python script could send commands to, which made it easy to incorporate into our project.
                     <br>
 
                     <h3 align="left">What Didn't Work</h3>
                     <p style="text-align: justify;padding: 0px 0px;">
-
+                      <h4>Region Growing and Color-Based Segmentation</h4>
                         At the start of the project, we experimented with a number of different methods to detect the user’s hand. We initially tried to generate an edge image from the original frame, using different edge operators, filters, and thresholds. We varied many parameters and techniques, and eventually were able to create an edge image of only the significant edges in the image. However, this did not help us with hand detection, and so we next attempted to use the skin color of the user to segment the hand. We began by using a calibration algorithm were the user would place their hand in the center of the screen, and press a button. The algorithm would use region growing with thresholding to scan until it found colors that were significantly different from neighbors or where it started. This technique had a number of issues; the thresholds were very dependent on the specifics of the situation, including the lighting, background, and user. We approaching the same issue using edge images, and generated edge images in different ways, including using HSV segmentation, with different thresholds instead of RGB. However, we found that because of noise and variable environments, we could not find a process that worked reliable to identify the hand.
+                        <br><br>
+                        <h4>Depth Channel Generation Using Stereo Camera Setup</h4>
+                        We next tried to use depth detection to identify the hand, since the hand was likely to be the closest object to the camera. Without a stereo camera, we attempted to use two cameras side by side, but between aligning them physically and the differences in noise, we were unable to create a usable depth image using the tools built in to OpenCV.
                         <br>
-                        <br> We next tried to use depth detection to identify the hand, since the hand was likely to be the closest object to the camera. Without a stereo camera, we attempted to use two cameras side by side, but between aligning them physically and the differences in noise, we were unable to create a usable depth image using the tools built in to OpenCV.
                         <br>
-                        <br> Another issue we encountered late in the project was creating smooth mouse motion. We also found that using center of mass detection worked well for mouse motion, but could cause abrupt mouse movement when the user changed gestures, since the shape of the object of interest (the hand/arm) would change with the gesture. We implemented a system to ignore movement while the gesture was changing, however, the detection of a gesture change and movement of the center of mass did not always align. We also wanted to determine a method for tracking the hand and ignoring the arm, but were unable to determine an appropriate method to distinguish the arm from the hand.
-                        <br>
-                        <br>
+
 
                         <h3 align="left">Opportunities for Improvement</h3>
                         <p style="text-align: justify;padding: 0px 30px;">
@@ -267,6 +307,8 @@
                             <br> Better gesture control
                             <br> More gestures
                             <br> Removing the arm from the hand image
+                            <br> Another issue we encountered late in the project was creating smooth mouse motion. We also found that using center of mass detection worked well for mouse motion, but could cause abrupt mouse movement when the user changed gestures, since the shape of the object of interest (the hand/arm) would change with the gesture. We implemented a system to ignore movement while the gesture was changing, however, the detection of a gesture change and movement of the center of mass did not always align. We also wanted to determine a method for tracking the hand and ignoring the arm, but were unable to determine an appropriate method to distinguish the arm from the hand.
+
                             <br>
 
                         </p>
