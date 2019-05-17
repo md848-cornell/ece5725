@@ -116,7 +116,7 @@ We started the process of mapping hand movements to mouse gestures by first atte
 
 We used OpenCV to find edges in the input image, with the <a href=”https://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_gradients/py_gradients.html”> OpenCV Sobel() function </a> and a kernel size of 1, in each orientation. We then used the magnitude of the gradient in both orientations to generate a simple edge image. After exploring other operations before and after applying the Sobel operation, we found the best results by applying the following sequence of operations. <br><br>
 
-<img class="img-rounded" src="pics/edge_detection_process.png" alt="Our Edge Detection Process" style="width:80%;">
+<img class="center-block" src="pics/edge_detection_process.png" alt="Our Edge Detection Process" style="width:60%;">
 <br><br>
 
 
@@ -180,7 +180,7 @@ In order to smooth out the movement of the mouse over Bluetooth, we used a tempo
 
     <hr id='result'>
 
-      <div style="text-align:center;">
+      <div style="text-align:left;">
               <h2>Results</h2>
               <p style="text-align: justify;padding: 0px 30px;">
 
@@ -197,7 +197,9 @@ The main performance issue we encountered (throughout the project) was image noi
       <div style="text-align:center;">
               <h2>Conclusions</h2>
               <p style="text-align: left;padding: 0px 30px;">
-	     Achievements:<br><br>
+
+       <h3 align="left">What Worked</h3>
+       <p style="text-align: justify;padding: 0px 0px;">
 
 When we decided to orient the camera upwards, we needed a way to remove edges in the background from the image. We did so by capture a frame on startup, and subtracting the edge image of that frame from every subsequent image. This method of background subtraction sometimes removed edges of the hand that were overlaid on edges of the background, but worked well for our purposes. After experimenting with different hand tracking methods, we found that tracking the center of mass of the edge image worked well enough for controlling mouse movement; only later did we have some problems when we introduced clicking. <br><br>
 
@@ -205,7 +207,8 @@ Our shape matching gesture detection system worked well after we had constrained
 
 We build a bluetooth mouse emulation service on a GitHub project that emulated a Bluetooth keyboard. This project ran a DBus server, and when the user input a keystroke, it would forward that keystroke over Bluetooth. We changed this project so that instead of emulating a keyboard, the software emulated a mouse, which was more involved than we expected, since it was somewhat challenging to find the documentation for HID control codes. We got this project working as a mouse emulation server, which any python script could send commands to, which made it easy to incorporate into our project. <br><br>
 
-Things that did not work:<br><br>
+<h3 align="left">What Didn't Work</h3>
+<p style="text-align: justify;padding: 0px 0px;">
 
 At the start of the project, we experimented with a number of different methods to detect the user’s hand. We initially tried to generate an edge image from the original frame, using different edge operators, filters, and thresholds. We varied many parameters and techniques, and eventually were able to create an edge image of only the significant edges in the image. However, this did not help us with hand detection, and so we next attempted to use the skin color of the user to segment the hand. We began by using a calibration algorithm were the user would place their hand in the center of the screen, and press a button. The algorithm would use region growing with thresholding to scan until it found colors that were significantly different from neighbors or where it started. This technique had a number of issues; the thresholds were very dependent on the specifics of the situation, including the lighting, background, and user. We approaching the same issue using edge images, and generated edge images in different ways, including using HSV segmentation, with different thresholds instead of RGB. However, we found that because of noise and variable environments, we could not find a process that worked reliable to identify the hand. <br><br>
 
@@ -214,7 +217,8 @@ We next tried to use depth detection to identify the hand, since the hand was li
 Another issue we encountered late in the project was creating smooth mouse motion. We also found that using center of mass detection worked well for mouse motion, but could cause abrupt mouse movement when the user changed gestures, since the shape of the object of interest (the hand/arm) would change with the gesture. We implemented a system to ignore movement while the gesture was changing, however, the detection of a gesture change and movement of the center of mass did not always align. We also wanted to determine a method for tracking the hand and ignoring the arm, but were unable to determine an appropriate method to distinguish the arm from the hand. <br><br>
 
 
-Future Work:<br><br>
+<h3 align="left">Opportunities for Improvement</h3>
+<p style="text-align: justify;padding: 0px 0px;">
 
 some ideas: this section still needs to be written
 
