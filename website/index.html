@@ -112,7 +112,7 @@
                 <br>
                 <br> [Side by side sobel comparison]
                 <br>
-                <br> We used OpenCV to find edges in the input image, with the <a href=”https://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_gradients/py_gradients.html”> OpenCV Sobel() function </a> and a kernel size of 1, in each orientation. We then used the magnitude of the gradient in both orientations to generate a simple edge image. After exploring other operations before and after applying the Sobel operation, we found the best results by applying the following sequence of operations.
+                <br> We used OpenCV to find edges in the input image, with the <a href="https://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_gradients/py_gradients.html"> OpenCV Sobel() function </a> and a kernel size of 1, in each orientation. We then used the magnitude of the gradient in both orientations to generate a simple edge image. After exploring other operations before and after applying the Sobel operation, we found the best results by applying the following sequence of operations.
                 <br>
                 <br>
 
@@ -135,7 +135,7 @@
                 <br>
                 <br> Our last attempt to distinguish a user’s hand from an arbitrary background was using depth detection, under the assumption that in general, the user’s hand would be closer to the camera than any other objects in the frame. We used a variety of techniques included in OpenCV, but found quickly that it was very difficult to align two cameras to act as a stereo camera, as we had planned. In the end, we found that there was too much noise in our camera setup to validate depth detection, and we decided to change our approach. [Code reference]
                 <br>
-                <br> After researching the <a href=”https://www.leapmotion.com/”>Leap Motion Controller </a>, a product similar to the system we were trying to produce, we decide to try putting the camera below the user’s hand facing up, instead of in front of the user facing them. Our edge detection algorithm worked well in this situation, especially since the ceiling was unchanging compared to when the background had included more of the user than their hand. To solve the issue of edges included in the background, we used background subtraction. [Code listing] On startup, our system would record a frame of the background without the user in it. It would then compute an edge image in the same way as described above, and would subtract that image from each new edge image generated from frame captures from the camera. This removed almost all edge artifacts from the background.
+                <br> After researching the <a href="https://www.leapmotion.com/">Leap Motion Controller,</a> a product similar to the system we were trying to produce, we decide to try putting the camera below the user’s hand facing up, instead of in front of the user facing them. Our edge detection algorithm worked well in this situation, especially since the ceiling was unchanging compared to when the background had included more of the user than their hand. To solve the issue of edges included in the background, we used background subtraction. [Code listing] On startup, our system would record a frame of the background without the user in it. It would then compute an edge image in the same way as described above, and would subtract that image from each new edge image generated from frame captures from the camera. This removed almost all edge artifacts from the background.
                 <br>
                 <br> [Hand image on ceiling background subtracted]
                 <br>
@@ -170,13 +170,18 @@
                 <br>
                 <br>
 
-                <h3 align="left">Emulating A Mouse Over Bluetooth</h3> Once we settled on a gesture identification method, we moved on to implementing Bluetooth mouse emulation. We did so by building on <a href=”https://github.com/mlabviet/BL_keyboard_RPI”>a GitHub project </a>, and by consulting a number of references (We found support for emulating a Bluetooth keyboard, but much less for mouse emulation). After some research, we set up a Bluetooth mouse emulation server using DBus, which would allow another python script or other entity to set mouse button press information and relative horizontal and vertical movement. [Code Listing] We added these calls to the code which managed the PiCamera image processing, and were able to control the mouse of a different device by moving a hand in from of the PiCam.
+                <h3 align="left">Emulating A Mouse Over Bluetooth</h3> Once we settled on a gesture identification method, we moved on to implementing Bluetooth mouse emulation. We did so by building on <a href="https://github.com/mlabviet/BL_keyboard_RPI">a GitHub project </a>, and by consulting a number of references (We found support for emulating a Bluetooth keyboard, but much less for mouse emulation). After some research, we set up a Bluetooth mouse emulation server using DBus, which would allow another python script or other entity to set mouse button press information and relative horizontal and vertical movement. [Code Listing] We added these calls to the code which managed the PiCamera image processing, and were able to control the mouse of a different device by moving a hand in from of the PiCam.
                 <br>
                 <br> [### MULTITHREADING STUFF HERE ###]
                 <br>
                 <br>
 
-                <h3 align="left">Optimizing OpenCV</h3> In order to smooth out the movement of the mouse over Bluetooth, we used a temporal filter. We implemented this by creating a list of mouse states. Every time the user’s hand moved, the relative motion was added to the list, as well as whether or not the gesture was a mouse click. The average of these values was used as the as the input to the Bluetooth socket. The resulting behavior was a slight delay, since behavior from previous frames influenced the action taken on the current frame. However, the mouse movement was smoother in general, since it was slightly denoised. Additionally, the delay introduced was not a real time delay, but the result of using a low pass filter on values which have already happened.
+                <h3 align="left">Optimizing OpenCV</h3>
+                The way in which we filtered the image, detected the gesture, and emulated the mouse did not leave much room for concurrency or parallelization, which means that using multithreading and multiprocessing modules would not have led to that much speedup. We were looking for rapid execution of sequential OpenCV operations. To achieve this, as per a <a href="https://www.pyimagesearch.com/2017/10/09/optimizing-opencv-on-the-raspberry-pi/"> 2017 article by Adrian Rosebrock, </a> an optimized version of OpenCV was installed. Simply put, the optimized version of OpenCV runs faster by taking advantage of
+
+
+
+                In order to smooth out the movement of the mouse over Bluetooth, we used a temporal filter. We implemented this by creating a list of mouse states. Every time the user’s hand moved, the relative motion was added to the list, as well as whether or not the gesture was a mouse click. The average of these values was used as the as the input to the Bluetooth socket. The resulting behavior was a slight delay, since behavior from previous frames influenced the action taken on the current frame. However, the mouse movement was smoother in general, since it was slightly denoised. Additionally, the delay introduced was not a real time delay, but the result of using a low pass filter on values which have already happened.
                 <br>
                 <br>
 
