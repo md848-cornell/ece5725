@@ -62,14 +62,15 @@
 
         <div class="starter-template">
             <h1>Gesture Controlled Mouse</h1>
+            Submitted <em>May 17, 2019</em> <br>
             ECE 5725: Design with Embedded Operating Systems <br>
             School of Electrical and Computer Engineering <br>
             Cornell University <br>
             <br>
             <p class="lead">Paolo Arguelles (pa394@cornell.edu)<br>
               Mike DiDomenico (md848@cornell.edu)</p>
-            <br><br>
-            <a href="https://github.com/md848-cornell/ece5725/">GitHub Repository</a>
+            <br>
+            <a href="https://github.com/md848-cornell/ece5725/">Project GitHub Repository</a>
             <br>
         </div>
 
@@ -93,7 +94,7 @@
               <br><br>
               Towards a more organic setup, we wanted to do minimize background control. A simple solution to avoid having to process a noisy background is to point the camera upwards. Weand the image of the blank ceiling is stored, and removed from all of the successive frames. Each frame is processed to detect the hand, and which of two gestures that the user is making. The motion of the hand, and the gestures are analyzed to send Bluetooth mouse commands to a remote machine.
               <br><br>
-              <img class="center-block" src="pics/fullsetup.png" alt="Our Edge Detection Process" style="width:60%;">
+              <img class="center-block" src="img/fullsetup.png" alt="Our Edge Detection Process" style="width:60%;">
             </p>
         </div>
 
@@ -141,23 +142,20 @@
                 <br>
                 <br>
 
-                <img class="center-block" src="pics/edge_detection_process.png" alt="Our Edge Detection Process" style="width:60%;">
+                <img class="center-block" src="img/edge_detection_process.png" alt="Our Edge Detection Process" style="width:60%;">
                 <br>
                 <br> With Sobel edge detection, we had an effective method of finding the outline of a hand, but still no method of finding the hand itself. After doing some research, we attempted using color to identify a user’s hand. To do this, we set a button which, when pressed, would use a simple region growing method with two thresholds to identify the region at the center of the image. To use this method, the user would position their hand in the center of the screen, then press the button. Starting at the center of the image, the algorithm would check each neighbor, and ensure that the pixel intensities were within a small threshold to their neighbor and within a large threshold to the original, center pixel. This method worked reasonably well, and by averaging the region found with the region growing algorithm, we could find a good estimate for the user’s skin color. However, this introduced a new problem which we had suspected that we would encounter. The user’s face would often interfere with this method, which encouraged us to look at other techniques.
                 <br>
                 <br>
 
-                <img class="center-block" src="pics/region_growing.png" alt="Region Growing Image" style="width:40%;">
+                <img class="center-block" src="img/region_growing.png" alt="Region Growing Image" style="width:40%;">
                 <br>
                 <br> We attempted to use a similar algorithm, but one which used edges generated not from a grayscale image, but from each of the hue, saturation, and value representation of the image. The idea behind this strategy was that hue segmentation/edges would separate the user from the background, and that saturation/value would separate the hand from the face, since the lighting was slightly different on each part of the body. While this seemed promising at first, it was unreliable in different lighting, and had highly variable performance.
                 <br>
                 <br>
                 Our last attempt to distinguish a user’s hand from an arbitrary background was using depth detection, under the assumption that in general, the user’s hand would be closer to the camera than any other objects in the frame. We used a variety of techniques included in OpenCV, but found quickly that it was very difficult to align two cameras to act as a stereo camera, as we had planned. In the end, we found that there was too much noise in our camera setup to validate depth detection, and we decided to change our approach.
                 <br>
-                <br> After researching the <a href="https://www.leapmotion.com/">Leap Motion Controller,</a> a product similar to the system we were trying to produce, we decide to try putting the camera below the user’s hand facing up, instead of in front of the user facing them. Our edge detection algorithm worked well in this situation, especially since the ceiling was unchanging compared to when the background had included more of the user than their hand. To solve the issue of edges included in the background, we used background subtraction. On startup, our system would record a frame of the background without the user in it. It would then compute an edge image in the same way as described above, and would subtract that image from each new edge image generated from frame captures from the camera. This removed almost all edge artifacts from the background.
-                <br>
-                <br>
-                <br> With this setup we were able to identify the edges of the user’s hand and arm.
+                <br> After researching the <a href="https://www.leapmotion.com/">Leap Motion Controller,</a> a product similar to the system we were trying to produce, we decide to try putting the camera below the user’s hand facing up, instead of in front of the user facing them. Our edge detection algorithm worked well in this situation, especially since the ceiling was unchanging compared to when the background had included more of the user than their hand. To solve the issue of edges included in the background, we used background subtraction. On startup, our system would record a frame of the background without the user in it. It would then compute an edge image in the same way as described above, and would subtract that image from each new edge image generated from frame captures from the camera. This removed almost all edge artifacts from the background. With this setup we were able to identify the edges of the user’s hand and arm.
                 <h3>Tracking Hand Movement</h3>
                 To track the movement of the hand, we computed the center of mass of the edge image <var>(cx,cy)</var> using OpenCV moment calculations:
                 <pre><code>
@@ -168,11 +166,9 @@
                 </code></pre>
                  By keeping track of the center of mass of the hand, we could effectively track the motion of the hand, in a way that was sufficient for our purposes. One of the problems with this approach was that the arm would interfere with the center of mass of the hand when the arm is in a significant part of the frame. However, we expected that we would be able to overcome the issue by either ignoring the arm, or constraining the camera so that the user’s hand would not move far enough into the frame to significantly interfere with the center of mass.
                 <br>
+                <br>Since we had a method of tracking the user’s hand and of identifying the edges of the hand, we started researching gesture detection. Many of the methods that we saw used a combination of a convex hull around the hand edges, and the defects in that convex hull. Using the OpenCV {convexHull} function, we found the convex hull of the edge image, as well as the defects with {convexityDefects}. We explored the possibility of using the convexity defects, but discovered that they were not as reliable as the hull, and some defects would appear and disappear with noise. However, we expected that we would be able to detect some simple gestures with only the convex hull of the hand.
                 <br>
-                <br> Since we had a method of tracking the user’s hand and of identifying the edges of the hand, we started researching gesture detection. Many of the methods that we saw used a combination of a convex hull around the hand edges, and the defects in that convex hull. Using the OpenCV {convexHull} function, we found the convex hull of the edge image, as well as the defects with {convexityDefects}. We explored the possibility of using the convexity defects, but discovered that they were not as reliable as the hull, and some defects would appear and disappear with noise. However, we expected that we would be able to detect some simple gestures with only the convex hull of the hand.
                 <br>
-                <br>
-
                 <h3 align="left">Gesture Classification by Polygon Matching</h3>
                 After applying the necessary image processing algorithms to yield a clear outline of the hand in image "frame," we used OpenCV to obtain the contours of the image:
 
@@ -192,16 +188,16 @@
                 defects = cv2.convexityDefects(cnts, defectHull)
                 f = cv2.drawContours(f, [hull], 0, hullColor, 5)
                 </code></pre>
-
+                <br>
                 Considering the needs of this project, we would only need to distinguish between two gesture states: one mapped to a "mouse button up" state, the other mapped to a "mouse button down" or "click initiate" state. While other gesture recognition projects would need to obtain the "convex hull defects" in order to locate the valleys between the fingers, we found that this can be avoided by working with gestures different enough that their uniqueness may be characterized by their convex hull alone. Skipping the standard "convex hull defects" step would also cut down on processing time, a much needed resource for real time applications such as this.
                 We decided to map a "point" gesture to a "mouse down" operation. All other gestures would map to a "mouse up" state. Polygon matching is performed in OpenCV by:
-                <pre><code> matches = cv2.matchShapes(hull,matchContour[1],cv2.CONTOURS_MATCH_I2,0) </code></pre>
-                When <code>matches</code> is printed, the console outputs a floating point number characterizing the similarity of the two polygons. Numbers closer to 0 indicate increasing similarity.
+                <br><pre><code> matches = cv2.matchShapes(hull,matchContour[1],cv2.CONTOURS_MATCH_I2,0) </code></pre>
+                <br>When <code>matches</code> is printed, the console outputs a floating point number characterizing the similarity of the two polygons. Numbers closer to 0 indicate increasing similarity.
                 <br>
 
                 We found that our system performs best when moving the mouse with an open hand gesture, and clicking by pointing the index finger. These two gestures are far enough apart form each other that their convex hulls (characterized by a heptagon and triangle, respectively) can robustly identify each gesture state.
                 <br><br>
-                <img class="center-block" src="pics/hull.png" alt="Our Edge Detection Process" style="width:40%;">
+                <img class="center-block" src="img/hull.png" alt="Our Edge Detection Process" style="width:40%;">
                 <p style="text-align: center;padding: 0px 0px;">
                 <em>Convex hull bounding a "move mouse" gesture</em>
                 <p style="text-align: left;padding: 0px 0px;">
@@ -240,12 +236,12 @@
             <h2>Implementation</h2>
             <p style="text-align: justify;padding: 0px 0px;">
                 Our final demonstration system was implemented with a Raspberry Pi, PiCam, and PiTFT. When the user powers on the system, the applications starts immediately, and performs background subtraction to compensate for whatever background it is facing.
-                <br><br><img class="center-block" src="pics/working.png" alt="Working System" style="width:60%;">
+                <br><br><img class="center-block" src="img/working.png" alt="Working System" style="width:60%;">
 
                 <br><br>
                 <em><strong>SET CLICK GESTURE (BUTTON 22)</strong></em>
                 - The user can press button 22 on the PiTFT to designate a gesture as the "click" or "mouse down" state. Once set, the convex hull will turn green to indicate that a click state has been detected.
-                <img class="center-block" src="pics/greenhull.png" alt="The convex hull turns green upon click gesture detection" style="width:40%;">
+                <img class="center-block" src="img/greenhull.png" alt="The convex hull turns green upon click gesture detection" style="width:40%;">
                 <p style="text-align: center;padding: 0px 0px;">
                 <em>The convex hull turns green upon click gesture detection</em>
                 <p style="text-align: left;padding: 0px 0px;">
@@ -296,7 +292,7 @@
                   <h4>Upward Camera Placement</h4>
                     When we decided to orient the camera upwards, we needed a way to remove edges in the background from the image. We did so by capture a frame on startup, and subtracting the edge image of that frame from every subsequent image. This method of background subtraction sometimes removed edges of the hand that were overlaid on edges of the background, but worked well for our purposes. After experimenting with different hand tracking methods, we found that tracking the center of mass of the edge image worked well enough for controlling mouse movement; only later did we have some problems when we introduced clicking.
                     <br><br>
-                    <img class="center-block" src="pics/up.png" alt="Our Edge Detection Process" style="width:40%;">
+                    <img class="center-block" src="img/up.png" alt="Our Edge Detection Process" style="width:40%;">
                     <p style="text-align: center;padding: 0px 0px;">
                     <em>Upward camera placement resulted in easier background removal</em>
                     <p style="text-align: left;padding: 0px 0px;">
@@ -319,7 +315,7 @@
                         <br>
 
 
-                        <h3 align="left">Opportunities for Improvement</h3>
+                        <h3 align="left">Future Work</h3>
                         <p style="text-align: justify;padding: 0px 30px;">
                             <h4> More Precise Gesture Control </h4>
                             An issue we encountered late in the project was creating smooth mouse motion. We found that using center of mass detection worked well for mouse motion, but could cause abrupt mouse movement when the user changed gestures, since the shape of the object of interest (the hand/arm) would change with the gesture. We implemented a system to ignore movement while the gesture was changing, however, the detection of a gesture change and movement of the center of mass did not always align. We also wanted to determine a method for tracking the hand and ignoring the arm, but were unable to determine an appropriate method to distinguish the arm from the hand.
