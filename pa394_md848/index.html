@@ -62,13 +62,14 @@
 
         <div class="starter-template">
             <h1>Gesture Controlled Mouse</h1>
-            Submitted <em>May 17, 2019</em> <br>
+            <p class="lead">Paolo Arguelles (pa394@cornell.edu)<br>
+              Mike DiDomenico (md848@cornell.edu)</p>
+            Submitted <em>May 17, 2019</em> <br><br>
             ECE 5725: Design with Embedded Operating Systems <br>
             School of Electrical and Computer Engineering <br>
             Cornell University <br>
             <br>
-            <p class="lead">Paolo Arguelles (pa394@cornell.edu)<br>
-              Mike DiDomenico (md848@cornell.edu)</p>
+
             <br>
             <a href="https://github.com/md848-cornell/ece5725/">Project GitHub Repository</a>
             <br>
@@ -116,23 +117,23 @@
             <h2>Design Process and Testing</h2>
             <p style="text-align: justify;padding: 0px 0px;">
                 When starting the project, we experimented with OpenCV on both our laptops and on the Raspberry Pi. We began on the Pi by simply reading frames from the PiCam.
-                <pre><code>
-                  #Import required libraries for PiCamera
-                  from picamera.array import PiRGBArray
-                  from picamera import PiCamera
+                <!-- HTML generated using hilite.me --><div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #408080; font-style: italic">#Import required libraries for PiCamera</span>
+                  <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">picamera.array</span> <span style="color: #008000; font-weight: bold">import</span> PiRGBArray
+                  <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">picamera</span> <span style="color: #008000; font-weight: bold">import</span> PiCamera
 
-                  #Initialize Picam, turn off automatic exposure adjustments
-                  camera = PiCamera()
-                  camera.resolution = (160*resScale, 120*resScale)
-                  camera.framerate = 30
-                  camera.exposure_mode = 'off'
-                  rawCapture = PiRGBArray(camera, size=(160*resScale, 120*resScale))
+                  <span style="color: #408080; font-style: italic">#Initialize Picam, turn off automatic exposure adjustments</span>
+                  camera <span style="color: #666666">=</span> PiCamera()
+                  camera<span style="color: #666666">.</span>resolution <span style="color: #666666">=</span> (<span style="color: #666666">160*</span>resScale, <span style="color: #666666">120*</span>resScale)
+                  camera<span style="color: #666666">.</span>framerate <span style="color: #666666">=</span> <span style="color: #666666">30</span>
+                  camera<span style="color: #666666">.</span>exposure_mode <span style="color: #666666">=</span> <span style="color: #BA2121">&#39;off&#39;</span>
+                  rawCapture <span style="color: #666666">=</span> PiRGBArray(camera, size<span style="color: #666666">=</span>(<span style="color: #666666">160*</span>resScale, <span style="color: #666666">120*</span>resScale))
 
-                  #Capture frames from PiCamera
-                  for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
-                    #MAIN CODE GOES IN FOR LOOP#
-                  cap.release()
-                </pre></code>
+                  <span style="color: #408080; font-style: italic">#Capture frames from PiCamera</span>
+                  <span style="color: #008000; font-weight: bold">for</span> frame <span style="color: #AA22FF; font-weight: bold">in</span> camera<span style="color: #666666">.</span>capture_continuous(rawCapture, <span style="color: #008000">format</span><span style="color: #666666">=</span><span style="color: #BA2121">&quot;bgr&quot;</span>, use_video_port<span style="color: #666666">=</span><span style="color: #008000; font-weight: bold">True</span>):
+                    <span style="color: #408080; font-style: italic">#MAIN CODE GOES IN FOR LOOP#</span>
+                  cap<span style="color: #666666">.</span>release()
+                </pre></div>
+
                 We explored a number of different resolutions throughout the project, to try to find which resolution would provide all of the necessary details, but which would also allow us to process frames quickly. Through experimentation, we found that a camera capture resolution of 160-by-120 was sufficient to distinguish between the two click states, and offered very low latency.
                 <br>
                 <h3>Image Processing Methods</h3>
@@ -158,12 +159,12 @@
                 <br> After researching the <a href="https://www.leapmotion.com/">Leap Motion Controller,</a> a product similar to the system we were trying to produce, we decide to try putting the camera below the user’s hand facing up, instead of in front of the user facing them. Our edge detection algorithm worked well in this situation, especially since the ceiling was unchanging compared to when the background had included more of the user than their hand. To solve the issue of edges included in the background, we used background subtraction. On startup, our system would record a frame of the background without the user in it. It would then compute an edge image in the same way as described above, and would subtract that image from each new edge image generated from frame captures from the camera. This removed almost all edge artifacts from the background. With this setup we were able to identify the edges of the user’s hand and arm.
                 <h3>Tracking Hand Movement</h3>
                 To track the movement of the hand, we computed the center of mass of the edge image <var>(cx,cy)</var> using OpenCV moment calculations:
-                <pre><code>
-                  M = cv2.moments(frame)
-                  if M['m00'] != 0:
-                      cx = int(M['m10']/M['m00'])
-                      cy = int(M['m01']/M['m00'])
-                </code></pre>
+                <!-- HTML generated using hilite.me --><div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%">M <span style="color: #666666">=</span> cv2<span style="color: #666666">.</span>moments(frame)
+     <span style="color: #008000; font-weight: bold">if</span> M[<span style="color: #BA2121">&#39;m00&#39;</span>] <span style="color: #666666">!=</span> <span style="color: #666666">0</span>:
+        cx <span style="color: #666666">=</span> <span style="color: #008000">int</span>(M[<span style="color: #BA2121">&#39;m10&#39;</span>]<span style="color: #666666">/</span>M[<span style="color: #BA2121">&#39;m00&#39;</span>])
+        cy <span style="color: #666666">=</span> <span style="color: #008000">int</span>(M[<span style="color: #BA2121">&#39;m01&#39;</span>]<span style="color: #666666">/</span>M[<span style="color: #BA2121">&#39;m00&#39;</span>])
+  </pre></div>
+
                  By keeping track of the center of mass of the hand, we could effectively track the motion of the hand, in a way that was sufficient for our purposes. One of the problems with this approach was that the arm would interfere with the center of mass of the hand when the arm is in a significant part of the frame. However, we expected that we would be able to overcome the issue by either ignoring the arm, or constraining the camera so that the user’s hand would not move far enough into the frame to significantly interfere with the center of mass.
                 <br>
                 <br>Since we had a method of tracking the user’s hand and of identifying the edges of the hand, we started researching gesture detection. Many of the methods that we saw used a combination of a convex hull around the hand edges, and the defects in that convex hull. Using the OpenCV {convexHull} function, we found the convex hull of the edge image, as well as the defects with {convexityDefects}. We explored the possibility of using the convexity defects, but discovered that they were not as reliable as the hull, and some defects would appear and disappear with noise. However, we expected that we would be able to detect some simple gestures with only the convex hull of the hand.
@@ -172,26 +173,26 @@
                 <h3 align="left">Gesture Classification by Polygon Matching</h3>
                 After applying the necessary image processing algorithms to yield a clear outline of the hand in image "frame," we used OpenCV to obtain the contours of the image:
 
-                <pre><code>
-                f = np.zeros((frame.shape[0],frame.shape[1],3),original.dtype)
-                f[:,:,0] = frame
-                f[:,:,1] = frame
-                f[:,:,2] = frame
-                _,contours,h = cv2.findContours(frame,  cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-                </code></pre>
+                <!-- HTML generated using hilite.me --><div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%">                f <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros((frame<span style="color: #666666">.</span>shape[<span style="color: #666666">0</span>],frame<span style="color: #666666">.</span>shape[<span style="color: #666666">1</span>],<span style="color: #666666">3</span>),original<span style="color: #666666">.</span>dtype)
+                                f[:,:,<span style="color: #666666">0</span>] <span style="color: #666666">=</span> frame
+                                f[:,:,<span style="color: #666666">1</span>] <span style="color: #666666">=</span> frame
+                                f[:,:,<span style="color: #666666">2</span>] <span style="color: #666666">=</span> frame
+                                _,contours,h <span style="color: #666666">=</span> cv2<span style="color: #666666">.</span>findContours(frame,  cv2<span style="color: #666666">.</span>RETR_TREE, cv2<span style="color: #666666">.</span>CHAIN_APPROX_SIMPLE)
+                </pre></div>
 
                 From the contours, OpenCV calculated a convex hull (i.e., a polygon which encompasses the boundary of the shape):
-                <pre><code>
-                cnts = np.vstack([contours[i] for i in range(len(contours))])
-                hull = cv2.convexHull(cnts)
-                defectHull = cv2.convexHull(cnts,returnPoints=False)
-                defects = cv2.convexityDefects(cnts, defectHull)
-                f = cv2.drawContours(f, [hull], 0, hullColor, 5)
-                </code></pre>
+                <!-- HTML generated using hilite.me --><div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%">                cnts <span style="color: #666666">=</span> np<span style="color: #666666">.</span>vstack([contours[i] <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #008000">len</span>(contours))])
+                                hull <span style="color: #666666">=</span> cv2<span style="color: #666666">.</span>convexHull(cnts)
+                                defectHull <span style="color: #666666">=</span> cv2<span style="color: #666666">.</span>convexHull(cnts,returnPoints<span style="color: #666666">=</span><span style="color: #008000; font-weight: bold">False</span>)
+                                defects <span style="color: #666666">=</span> cv2<span style="color: #666666">.</span>convexityDefects(cnts, defectHull)
+                                f <span style="color: #666666">=</span> cv2<span style="color: #666666">.</span>drawContours(f, [hull], <span style="color: #666666">0</span>, hullColor, <span style="color: #666666">5</span>)
+                </pre></div>
                 <br>
                 Considering the needs of this project, we would only need to distinguish between two gesture states: one mapped to a "mouse button up" state, the other mapped to a "mouse button down" or "click initiate" state. While other gesture recognition projects would need to obtain the "convex hull defects" in order to locate the valleys between the fingers, we found that this can be avoided by working with gestures different enough that their uniqueness may be characterized by their convex hull alone. Skipping the standard "convex hull defects" step would also cut down on processing time, a much needed resource for real time applications such as this.
                 We decided to map a "point" gesture to a "mouse down" operation. All other gestures would map to a "mouse up" state. Polygon matching is performed in OpenCV by:
-                <br><pre><code> matches = cv2.matchShapes(hull,matchContour[1],cv2.CONTOURS_MATCH_I2,0) </code></pre>
+                <br>
+                <!-- HTML generated using hilite.me --><div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%">matches <span style="color: #666666">=</span> cv2<span style="color: #666666">.</span>matchShapes(hull,matchContour[<span style="color: #666666">1</span>],cv2<span style="color: #666666">.</span>CONTOURS_MATCH_I2,<span style="color: #666666">0</span>)
+                </pre></div>
                 <br>When <code>matches</code> is printed, the console outputs a floating point number characterizing the similarity of the two polygons. Numbers closer to 0 indicate increasing similarity.
                 <br>
 
@@ -212,19 +213,19 @@
                 <br>
                 <br>
                 The procedure for installing this optimized version of OpenCV is virtually identical to that of installing the regular version; any tutorial describing the process can be followed. The only change occurs at the <code>cmake</code> command:
-                <pre><code>
-                  $ cd ~/opencv-3.3.0/
-                  $ mkdir build
-                  $ cd build
-                  $ cmake -D CMAKE_BUILD_TYPE=RELEASE \
-                      -D CMAKE_INSTALL_PREFIX=/usr/local \
-                      -D OPENCV_EXTRA_MODULES_PATH=~/opencv_contrib-3.3.0/modules \
-                      -D ENABLE_NEON=ON \
-                      -D ENABLE_VFPV3=ON \
-                      -D BUILD_TESTS=OFF \
-                      -D INSTALL_PYTHON_EXAMPLES=OFF \
-                      -D BUILD_EXAMPLES=OFF ..
-                </code></pre>
+                <!-- HTML generated using hilite.me --><div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%">  <span style="color: #19177C">$ </span><span style="color: #008000">cd</span> ~/opencv-3.3.0/
+  <span style="color: #19177C">$ </span>mkdir build
+  <span style="color: #19177C">$ </span><span style="color: #008000">cd </span>build
+  <span style="color: #19177C">$ </span>cmake -D <span style="color: #19177C">CMAKE_BUILD_TYPE</span><span style="color: #666666">=</span>RELEASE <span style="color: #BB6622; font-weight: bold">\</span>
+                      -D <span style="color: #19177C">CMAKE_INSTALL_PREFIX</span><span style="color: #666666">=</span>/usr/local <span style="color: #BB6622; font-weight: bold">\</span>
+                      -D <span style="color: #19177C">OPENCV_EXTRA_MODULES_PATH</span><span style="color: #666666">=</span>~/opencv_contrib-3.3.0/modules <span style="color: #BB6622; font-weight: bold">\</span>
+                      -D <span style="color: #19177C">ENABLE_NEON</span><span style="color: #666666">=</span>ON <span style="color: #BB6622; font-weight: bold">\</span>
+                      -D <span style="color: #19177C">ENABLE_VFPV3</span><span style="color: #666666">=</span>ON <span style="color: #BB6622; font-weight: bold">\</span>
+                      -D <span style="color: #19177C">BUILD_TESTS</span><span style="color: #666666">=</span>OFF <span style="color: #BB6622; font-weight: bold">\</span>
+                      -D <span style="color: #19177C">INSTALL_PYTHON_EXAMPLES</span><span style="color: #666666">=</span>OFF <span style="color: #BB6622; font-weight: bold">\</span>
+                      -D <span style="color: #19177C">BUILD_EXAMPLES</span><span style="color: #666666">=</span>OFF ..
+</pre></div>
+
                 Note that the <code>ENABLE_NEON</code> and <code>ENABLE_VFPV3</code> flags are flipped on.
 
             </p>
@@ -374,353 +375,353 @@
         <h2>Code Appendix</h2>
         <div class="row">
             <h3>start.sh</h3>
-            <pre><code>
-              #Stop the background process
+              <!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #888888">#Stop the background process</span>
               sudo /etc/init.d/bluetooth stop
-              # Turn on Bluetooth
+              <span style="color: #888888"># Turn on Bluetooth</span>
               sudo hciconfig hcio up
-              # Update  mac address
-              #./updateMac.sh
-              #Update Name
-              #./updateName.sh RPi_Mouse
-              #Get current Path
-              export C_PATH=$(pwd)
-              #Create Tmux session
+              <span style="color: #888888"># Update  mac address</span>
+              <span style="color: #888888">#./updateMac.sh</span>
+              <span style="color: #888888">#Update Name</span>
+              <span style="color: #888888">#./updateName.sh RPi_Mouse</span>
+              <span style="color: #888888">#Get current Path</span>
+              <span style="color: #007020">export </span><span style="color: #996633">C_PATH</span><span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">$(</span><span style="color: #007020">pwd</span><span style="color: #008800; font-weight: bold">)</span>
+              <span style="color: #888888">#Create Tmux session</span>
               tmux has-session -t  mlabviet
-              if [ $? != 0 ]; then
+              <span style="color: #008800; font-weight: bold">if</span> <span style="color: #333333">[</span> <span style="color: #996633">$?</span> !<span style="color: #333333">=</span> 0 <span style="color: #333333">]</span>; <span style="color: #008800; font-weight: bold">then</span>
 
-                  echo "starting tmux commands"
+<span style="color: #008800; font-weight: bold">                  </span><span style="color: #007020">echo</span> <span style="background-color: #fff0f0">&quot;starting tmux commands&quot;</span>
                   tmux new-session -s mlabviet -n os -d
                   tmux split-window -v -t mlabviet:os.0
                   tmux split-window -v -t mlabviet:os.1
-                  tmux send-keys -t mlabviet:os.0 'cd $C_PATH && sudo /usr/sbin/bluetoothd --nodetach --debug -p time ' C-m
-                  tmux send-keys -t mlabviet:os.1 'cd $C_PATH/server && sudo python btk_mouse.py ' C-m
-                  tmux send-keys -t mlabviet:os.2 'cd $C_PATH && sudo /usr/bin/bluetoothctl' C-m
-                  echo "tmux done"
-              fi
-            </code></pre>
+                  tmux send-keys -t mlabviet:os.0 <span style="background-color: #fff0f0">&#39;cd $C_PATH &amp;&amp; sudo /usr/sbin/bluetoothd --nodetach --debug -p time &#39;</span> C-m
+                  tmux send-keys -t mlabviet:os.1 <span style="background-color: #fff0f0">&#39;cd $C_PATH/server &amp;&amp; sudo python btk_mouse.py &#39;</span> C-m
+                  tmux send-keys -t mlabviet:os.2 <span style="background-color: #fff0f0">&#39;cd $C_PATH &amp;&amp; sudo /usr/bin/bluetoothctl&#39;</span> C-m
+                  <span style="color: #007020">echo</span> <span style="background-color: #fff0f0">&quot;tmux done&quot;</span>
+              <span style="color: #008800; font-weight: bold">fi</span>
+</pre></div>
+
         </div>
 
         <div class="row">
             <h3>gestureDetection.py</h3>
-            <pre><code>
-              # source:
-              # https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_gui/py_video_display/py_video_display.html
+              <!-- HTML generated using hilite.me --><div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #408080; font-style: italic"># source:</span>
+              <span style="color: #408080; font-style: italic"># https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_gui/py_video_display/py_video_display.html</span>
 
-              # import the necessary packages
-              from picamera.array import PiRGBArray
-              from picamera import PiCamera
-              import RPi.GPIO as GPIO
-              import time
-              import cv2
-              import numpy as np
-              import math
-              import os # for OS calls
-              import pygame # Import pygame graphics library
+              <span style="color: #408080; font-style: italic"># import the necessary packages</span>
+              <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">picamera.array</span> <span style="color: #008000; font-weight: bold">import</span> PiRGBArray
+              <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">picamera</span> <span style="color: #008000; font-weight: bold">import</span> PiCamera
+              <span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">RPi.GPIO</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">GPIO</span>
+              <span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">time</span>
+              <span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">cv2</span>
+              <span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+              <span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">math</span>
+              <span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">os</span> <span style="color: #408080; font-style: italic"># for OS calls</span>
+              <span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">pygame</span> <span style="color: #408080; font-style: italic"># Import pygame graphics library</span>
 
-              import dbus
-              import dbus.service
-              import dbus.mainloop.glib
+              <span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">dbus</span>
+              <span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">dbus.service</span>
+              <span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">dbus.mainloop.glib</span>
 
-              resScale = 1
-              postthreshold = 200
-              matchThreshold = 2
-              cxp = 0
-              cyp = 0
+              resScale <span style="color: #666666">=</span> <span style="color: #666666">1</span>
+              postthreshold <span style="color: #666666">=</span> <span style="color: #666666">200</span>
+              matchThreshold <span style="color: #666666">=</span> <span style="color: #666666">2</span>
+              cxp <span style="color: #666666">=</span> <span style="color: #666666">0</span>
+              cyp <span style="color: #666666">=</span> <span style="color: #666666">0</span>
 
-              # setup pygame drivers and screen
-              if True:
-                  os.putenv('SDL_VIDEODRIVER', 'fbcon') # Display on piTFT
-                  os.putenv('SDL_FBDEV', '/dev/fb1')
-                  #os.putenv('SDL_MOUSEDRV', 'TSLIB') # Track mouse clicks on piTFT
-                  #os.putenv('SDL_MOUSEDEV', '/dev/input/touchscreen')
+              <span style="color: #408080; font-style: italic"># setup pygame drivers and screen</span>
+              <span style="color: #008000; font-weight: bold">if</span> <span style="color: #008000; font-weight: bold">True</span>:
+                  os<span style="color: #666666">.</span>putenv(<span style="color: #BA2121">&#39;SDL_VIDEODRIVER&#39;</span>, <span style="color: #BA2121">&#39;fbcon&#39;</span>) <span style="color: #408080; font-style: italic"># Display on piTFT</span>
+                  os<span style="color: #666666">.</span>putenv(<span style="color: #BA2121">&#39;SDL_FBDEV&#39;</span>, <span style="color: #BA2121">&#39;/dev/fb1&#39;</span>)
+                  <span style="color: #408080; font-style: italic">#os.putenv(&#39;SDL_MOUSEDRV&#39;, &#39;TSLIB&#39;) # Track mouse clicks on piTFT</span>
+                  <span style="color: #408080; font-style: italic">#os.putenv(&#39;SDL_MOUSEDEV&#39;, &#39;/dev/input/touchscreen&#39;)</span>
 
-              # initialize the camera and grab a reference to the raw camera capture
-              camera = PiCamera()
-              camera.resolution = (160*resScale, 120*resScale)
-              camera.framerate = 30
-              camera.exposure_mode = 'off'
-              rawCapture = PiRGBArray(camera, size=(160*resScale, 120*resScale))
+              <span style="color: #408080; font-style: italic"># initialize the camera and grab a reference to the raw camera capture</span>
+              camera <span style="color: #666666">=</span> PiCamera()
+              camera<span style="color: #666666">.</span>resolution <span style="color: #666666">=</span> (<span style="color: #666666">160*</span>resScale, <span style="color: #666666">120*</span>resScale)
+              camera<span style="color: #666666">.</span>framerate <span style="color: #666666">=</span> <span style="color: #666666">30</span>
+              camera<span style="color: #666666">.</span>exposure_mode <span style="color: #666666">=</span> <span style="color: #BA2121">&#39;off&#39;</span>
+              rawCapture <span style="color: #666666">=</span> PiRGBArray(camera, size<span style="color: #666666">=</span>(<span style="color: #666666">160*</span>resScale, <span style="color: #666666">120*</span>resScale))
 
-              # allow the camera to warmup
-              time.sleep(0.1)
-              key = None
-              bg = None
+              <span style="color: #408080; font-style: italic"># allow the camera to warmup</span>
+              time<span style="color: #666666">.</span>sleep(<span style="color: #666666">0.1</span>)
+              key <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">None</span>
+              bg <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">None</span>
 
-              portFcn = [0, 0, 0]
-              mouseEm = np.asarray([0, 0, 0])
-              prevMouseEm = np.asarray([0, 0, 0])
+              portFcn <span style="color: #666666">=</span> [<span style="color: #666666">0</span>, <span style="color: #666666">0</span>, <span style="color: #666666">0</span>]
+              mouseEm <span style="color: #666666">=</span> np<span style="color: #666666">.</span>asarray([<span style="color: #666666">0</span>, <span style="color: #666666">0</span>, <span style="color: #666666">0</span>])
+              prevMouseEm <span style="color: #666666">=</span> np<span style="color: #666666">.</span>asarray([<span style="color: #666666">0</span>, <span style="color: #666666">0</span>, <span style="color: #666666">0</span>])
 
-              frameCount = 0
-              thrs = 0.09
-              et = 0
+              frameCount <span style="color: #666666">=</span> <span style="color: #666666">0</span>
+              thrs <span style="color: #666666">=</span> <span style="color: #666666">0.09</span>
+              et <span style="color: #666666">=</span> <span style="color: #666666">0</span>
 
-              bus = dbus.SystemBus()
-              btkservice = bus.get_object('org.yaptb.btkbservice','/org/yaptb/btkbservice')
-              dev = dbus.Interface(btkservice,'org.yaptb.btkbservice')
-              time.sleep(2)
+              bus <span style="color: #666666">=</span> dbus<span style="color: #666666">.</span>SystemBus()
+              btkservice <span style="color: #666666">=</span> bus<span style="color: #666666">.</span>get_object(<span style="color: #BA2121">&#39;org.yaptb.btkbservice&#39;</span>,<span style="color: #BA2121">&#39;/org/yaptb/btkbservice&#39;</span>)
+              dev <span style="color: #666666">=</span> dbus<span style="color: #666666">.</span>Interface(btkservice,<span style="color: #BA2121">&#39;org.yaptb.btkbservice&#39;</span>)
+              time<span style="color: #666666">.</span>sleep(<span style="color: #666666">2</span>)
 
-              def to_binary(i):
-                  if i >= 0:
-                      if i > 127: i = 127
-                      i = i & 0xFF
-                  else:
-                      if i < -127: i = -127
-                      i = abs(i) & 0xFF
-                      i = ~i + 1
-                      i = i & 0xFF
-                  return i
+              <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">to_binary</span>(i):
+                  <span style="color: #008000; font-weight: bold">if</span> i <span style="color: #666666">&gt;=</span> <span style="color: #666666">0</span>:
+                      <span style="color: #008000; font-weight: bold">if</span> i <span style="color: #666666">&gt;</span> <span style="color: #666666">127</span>: i <span style="color: #666666">=</span> <span style="color: #666666">127</span>
+                      i <span style="color: #666666">=</span> i <span style="color: #666666">&amp;</span> <span style="color: #666666">0xFF</span>
+                  <span style="color: #008000; font-weight: bold">else</span>:
+                      <span style="color: #008000; font-weight: bold">if</span> i <span style="color: #666666">&lt;</span> <span style="color: #666666">-127</span>: i <span style="color: #666666">=</span> <span style="color: #666666">-127</span>
+                      i <span style="color: #666666">=</span> <span style="color: #008000">abs</span>(i) <span style="color: #666666">&amp;</span> <span style="color: #666666">0xFF</span>
+                      i <span style="color: #666666">=</span> <span style="color: #666666">~</span>i <span style="color: #666666">+</span> <span style="color: #666666">1</span>
+                      i <span style="color: #666666">=</span> i <span style="color: #666666">&amp;</span> <span style="color: #666666">0xFF</span>
+                  <span style="color: #008000; font-weight: bold">return</span> i
 
-              def send_move(dev, buttons, x, y):
-                  x = to_binary(int(x))
-                  y = to_binary(int(y))
-                  wheel = 0
-                  dev.send_array(0,[0xA1,0x01, buttons, x, y, wheel, 0x00, 0x00])
+              <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">send_move</span>(dev, buttons, x, y):
+                  x <span style="color: #666666">=</span> to_binary(<span style="color: #008000">int</span>(x))
+                  y <span style="color: #666666">=</span> to_binary(<span style="color: #008000">int</span>(y))
+                  wheel <span style="color: #666666">=</span> <span style="color: #666666">0</span>
+                  dev<span style="color: #666666">.</span>send_array(<span style="color: #666666">0</span>,[<span style="color: #666666">0xA1</span>,<span style="color: #666666">0x01</span>, buttons, x, y, wheel, <span style="color: #666666">0x00</span>, <span style="color: #666666">0x00</span>])
 
-              def send_state(dev, buttons, x, y):
-                  while abs(x) > 127 or abs(y) > 127:
-                      if abs(x) > 127:
-                          x -= x/abs(x) * 127
-                      if abs(y) > 127:
-                          y -= y/abs(y) * 127
+              <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">send_state</span>(dev, buttons, x, y):
+                  <span style="color: #008000; font-weight: bold">while</span> <span style="color: #008000">abs</span>(x) <span style="color: #666666">&gt;</span> <span style="color: #666666">127</span> <span style="color: #AA22FF; font-weight: bold">or</span> <span style="color: #008000">abs</span>(y) <span style="color: #666666">&gt;</span> <span style="color: #666666">127</span>:
+                      <span style="color: #008000; font-weight: bold">if</span> <span style="color: #008000">abs</span>(x) <span style="color: #666666">&gt;</span> <span style="color: #666666">127</span>:
+                          x <span style="color: #666666">-=</span> x<span style="color: #666666">/</span><span style="color: #008000">abs</span>(x) <span style="color: #666666">*</span> <span style="color: #666666">127</span>
+                      <span style="color: #008000; font-weight: bold">if</span> <span style="color: #008000">abs</span>(y) <span style="color: #666666">&gt;</span> <span style="color: #666666">127</span>:
+                          y <span style="color: #666666">-=</span> y<span style="color: #666666">/</span><span style="color: #008000">abs</span>(y) <span style="color: #666666">*</span> <span style="color: #666666">127</span>
                       send_move(dev,buttons,x,y)
                   send_move(dev,buttons,x,y)
 
-              def GPIO17_callback(channel):
-                  portFcn[0] = not portFcn[0]
-                  print("HOLD CURSOR")
+              <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">GPIO17_callback</span>(channel):
+                  portFcn[<span style="color: #666666">0</span>] <span style="color: #666666">=</span> <span style="color: #AA22FF; font-weight: bold">not</span> portFcn[<span style="color: #666666">0</span>]
+                  <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;HOLD CURSOR&quot;</span>)
 
-              def GPIO22_callback(channel):
-                  portFcn[1] = 1
-                  print("SET CLICK GESTURE")
+              <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">GPIO22_callback</span>(channel):
+                  portFcn[<span style="color: #666666">1</span>] <span style="color: #666666">=</span> <span style="color: #666666">1</span>
+                  <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;SET CLICK GESTURE&quot;</span>)
 
-              def GPIO23_callback(channel):
-                  portFcn[2] = 1
+              <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">GPIO23_callback</span>(channel):
+                  portFcn[<span style="color: #666666">2</span>] <span style="color: #666666">=</span> <span style="color: #666666">1</span>
 
-              def GPIO27_callback(channel):
-                  print("QUITTING PROGRAM")
+              <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">GPIO27_callback</span>(channel):
+                  <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;QUITTING PROGRAM&quot;</span>)
                   exit()
 
-              # INITIALIZE GPIO
-              GPIO.setmode(GPIO.BCM)
-              pull_up_ports = [17,22,23,27]
-              quit_port = 27
-              for port in pull_up_ports:
-                  GPIO.setup(port, GPIO.IN,pull_up_down=GPIO.PUD_UP)
+              <span style="color: #408080; font-style: italic"># INITIALIZE GPIO</span>
+              GPIO<span style="color: #666666">.</span>setmode(GPIO<span style="color: #666666">.</span>BCM)
+              pull_up_ports <span style="color: #666666">=</span> [<span style="color: #666666">17</span>,<span style="color: #666666">22</span>,<span style="color: #666666">23</span>,<span style="color: #666666">27</span>]
+              quit_port <span style="color: #666666">=</span> <span style="color: #666666">27</span>
+              <span style="color: #008000; font-weight: bold">for</span> port <span style="color: #AA22FF; font-weight: bold">in</span> pull_up_ports:
+                  GPIO<span style="color: #666666">.</span>setup(port, GPIO<span style="color: #666666">.</span>IN,pull_up_down<span style="color: #666666">=</span>GPIO<span style="color: #666666">.</span>PUD_UP)
 
-              GPIO.add_event_detect(17, GPIO.FALLING, callback=GPIO17_callback, bouncetime=300)
-              GPIO.add_event_detect(22, GPIO.FALLING, callback=GPIO22_callback, bouncetime=300)
-              GPIO.add_event_detect(23, GPIO.FALLING, callback=GPIO23_callback, bouncetime=300)
-              GPIO.add_event_detect(27, GPIO.FALLING, callback=GPIO27_callback, bouncetime=300)
+              GPIO<span style="color: #666666">.</span>add_event_detect(<span style="color: #666666">17</span>, GPIO<span style="color: #666666">.</span>FALLING, callback<span style="color: #666666">=</span>GPIO17_callback, bouncetime<span style="color: #666666">=300</span>)
+              GPIO<span style="color: #666666">.</span>add_event_detect(<span style="color: #666666">22</span>, GPIO<span style="color: #666666">.</span>FALLING, callback<span style="color: #666666">=</span>GPIO22_callback, bouncetime<span style="color: #666666">=300</span>)
+              GPIO<span style="color: #666666">.</span>add_event_detect(<span style="color: #666666">23</span>, GPIO<span style="color: #666666">.</span>FALLING, callback<span style="color: #666666">=</span>GPIO23_callback, bouncetime<span style="color: #666666">=300</span>)
+              GPIO<span style="color: #666666">.</span>add_event_detect(<span style="color: #666666">27</span>, GPIO<span style="color: #666666">.</span>FALLING, callback<span style="color: #666666">=</span>GPIO27_callback, bouncetime<span style="color: #666666">=300</span>)
 
-              # INITIALIZE PYGAME STUFF
-              pygame.init()
-              clock = pygame.time.Clock()
-              size = width, height = 320,240
-              black = 0,0,0
-              screen = pygame.display.set_mode(size, pygame.HWSURFACE)
+              <span style="color: #408080; font-style: italic"># INITIALIZE PYGAME STUFF</span>
+              pygame<span style="color: #666666">.</span>init()
+              clock <span style="color: #666666">=</span> pygame<span style="color: #666666">.</span>time<span style="color: #666666">.</span>Clock()
+              size <span style="color: #666666">=</span> width, height <span style="color: #666666">=</span> <span style="color: #666666">320</span>,<span style="color: #666666">240</span>
+              black <span style="color: #666666">=</span> <span style="color: #666666">0</span>,<span style="color: #666666">0</span>,<span style="color: #666666">0</span>
+              screen <span style="color: #666666">=</span> pygame<span style="color: #666666">.</span>display<span style="color: #666666">.</span>set_mode(size, pygame<span style="color: #666666">.</span>HWSURFACE)
 
-              startTime = time.time()
-              pygame.mouse.set_visible( False )
+              startTime <span style="color: #666666">=</span> time<span style="color: #666666">.</span>time()
+              pygame<span style="color: #666666">.</span>mouse<span style="color: #666666">.</span>set_visible( <span style="color: #008000; font-weight: bold">False</span> )
 
-              def edges(frame, thresh):
-                  sobelx = cv2.Sobel(frame, cv2.CV_32F, 1, 0, ksize=1)
-                  sobely = cv2.Sobel(frame, cv2.CV_32F, 0, 1, ksize=1)
-                  mag = np.power(np.power(sobelx,2) + np.power(sobely,2),1/2)
+              <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">edges</span>(frame, thresh):
+                  sobelx <span style="color: #666666">=</span> cv2<span style="color: #666666">.</span>Sobel(frame, cv2<span style="color: #666666">.</span>CV_32F, <span style="color: #666666">1</span>, <span style="color: #666666">0</span>, ksize<span style="color: #666666">=1</span>)
+                  sobely <span style="color: #666666">=</span> cv2<span style="color: #666666">.</span>Sobel(frame, cv2<span style="color: #666666">.</span>CV_32F, <span style="color: #666666">0</span>, <span style="color: #666666">1</span>, ksize<span style="color: #666666">=1</span>)
+                  mag <span style="color: #666666">=</span> np<span style="color: #666666">.</span>power(np<span style="color: #666666">.</span>power(sobelx,<span style="color: #666666">2</span>) <span style="color: #666666">+</span> np<span style="color: #666666">.</span>power(sobely,<span style="color: #666666">2</span>),<span style="color: #666666">1/2</span>)
 
-                  # processing on edge image
-                  frame = cv2.blur(mag,(3,3))
-                  #frame = cv2.medianBlur(frame5)
+                  <span style="color: #408080; font-style: italic"># processing on edge image</span>
+                  frame <span style="color: #666666">=</span> cv2<span style="color: #666666">.</span>blur(mag,(<span style="color: #666666">3</span>,<span style="color: #666666">3</span>))
+                  <span style="color: #408080; font-style: italic">#frame = cv2.medianBlur(frame5)</span>
 
-                  # thresholding
-                  mm = (np.amax(frame) * thresh)
-                  frame = (mm < frame)
-                  frame = np.float32(frame)
-                  return frame
+                  <span style="color: #408080; font-style: italic"># thresholding</span>
+                  mm <span style="color: #666666">=</span> (np<span style="color: #666666">.</span>amax(frame) <span style="color: #666666">*</span> thresh)
+                  frame <span style="color: #666666">=</span> (mm <span style="color: #666666">&lt;</span> frame)
+                  frame <span style="color: #666666">=</span> np<span style="color: #666666">.</span>float32(frame)
+                  <span style="color: #008000; font-weight: bold">return</span> frame
 
-              def center_of_mass(img):
-                  h = img.shape[0]
-                  w = img.shape[1]
-                  mx = np.amax(img)
-                  mn = np.amin(img)
-                  yc = 0
-                  xc = 0
-                  total = 0
-                  for y in range(h):
-                      for x in range(w):
-                          v = img[y,x]
-                          if v > 0:
-                              yc += y
-                              xc += x
-                              total += 1
-                  if total == 0:
-                      yy = 0
-                      xx = 0
-                  else:
-                      yy = int(yc/total)
-                      xx = int(xc/total)
+              <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">center_of_mass</span>(img):
+                  h <span style="color: #666666">=</span> img<span style="color: #666666">.</span>shape[<span style="color: #666666">0</span>]
+                  w <span style="color: #666666">=</span> img<span style="color: #666666">.</span>shape[<span style="color: #666666">1</span>]
+                  mx <span style="color: #666666">=</span> np<span style="color: #666666">.</span>amax(img)
+                  mn <span style="color: #666666">=</span> np<span style="color: #666666">.</span>amin(img)
+                  yc <span style="color: #666666">=</span> <span style="color: #666666">0</span>
+                  xc <span style="color: #666666">=</span> <span style="color: #666666">0</span>
+                  total <span style="color: #666666">=</span> <span style="color: #666666">0</span>
+                  <span style="color: #008000; font-weight: bold">for</span> y <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(h):
+                      <span style="color: #008000; font-weight: bold">for</span> x <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(w):
+                          v <span style="color: #666666">=</span> img[y,x]
+                          <span style="color: #008000; font-weight: bold">if</span> v <span style="color: #666666">&gt;</span> <span style="color: #666666">0</span>:
+                              yc <span style="color: #666666">+=</span> y
+                              xc <span style="color: #666666">+=</span> x
+                              total <span style="color: #666666">+=</span> <span style="color: #666666">1</span>
+                  <span style="color: #008000; font-weight: bold">if</span> total <span style="color: #666666">==</span> <span style="color: #666666">0</span>:
+                      yy <span style="color: #666666">=</span> <span style="color: #666666">0</span>
+                      xx <span style="color: #666666">=</span> <span style="color: #666666">0</span>
+                  <span style="color: #008000; font-weight: bold">else</span>:
+                      yy <span style="color: #666666">=</span> <span style="color: #008000">int</span>(yc<span style="color: #666666">/</span>total)
+                      xx <span style="color: #666666">=</span> <span style="color: #008000">int</span>(xc<span style="color: #666666">/</span>total)
 
-                  return yy,xx
+                  <span style="color: #008000; font-weight: bold">return</span> yy,xx
 
-              bg = None
-              matchContour = [None] * 10
-              nbg = 1
-              Start = 1
+              bg <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">None</span>
+              matchContour <span style="color: #666666">=</span> [<span style="color: #008000; font-weight: bold">None</span>] <span style="color: #666666">*</span> <span style="color: #666666">10</span>
+              nbg <span style="color: #666666">=</span> <span style="color: #666666">1</span>
+              Start <span style="color: #666666">=</span> <span style="color: #666666">1</span>
 
-              hullColor = (0,0,255)
+              hullColor <span style="color: #666666">=</span> (<span style="color: #666666">0</span>,<span style="color: #666666">0</span>,<span style="color: #666666">255</span>)
 
-              cx = 0
-              cy = 0
+              cx <span style="color: #666666">=</span> <span style="color: #666666">0</span>
+              cy <span style="color: #666666">=</span> <span style="color: #666666">0</span>
 
-              mouseL_len = 3
-              mouseL = np.asarray([[0,0,0]] * mouseL_len)
+              mouseL_len <span style="color: #666666">=</span> <span style="color: #666666">3</span>
+              mouseL <span style="color: #666666">=</span> np<span style="color: #666666">.</span>asarray([[<span style="color: #666666">0</span>,<span style="color: #666666">0</span>,<span style="color: #666666">0</span>]] <span style="color: #666666">*</span> mouseL_len)
 
-              for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
-                  wk = cv2.waitKey(1)
-                  frame = frame.array
-                  original = np.copy(frame)
+              <span style="color: #008000; font-weight: bold">for</span> frame <span style="color: #AA22FF; font-weight: bold">in</span> camera<span style="color: #666666">.</span>capture_continuous(rawCapture, <span style="color: #008000">format</span><span style="color: #666666">=</span><span style="color: #BA2121">&quot;bgr&quot;</span>, use_video_port<span style="color: #666666">=</span><span style="color: #008000; font-weight: bold">True</span>):
+                  wk <span style="color: #666666">=</span> cv2<span style="color: #666666">.</span>waitKey(<span style="color: #666666">1</span>)
+                  frame <span style="color: #666666">=</span> frame<span style="color: #666666">.</span>array
+                  original <span style="color: #666666">=</span> np<span style="color: #666666">.</span>copy(frame)
 
-                  frame = cv2.blur(frame,(7,7))
+                  frame <span style="color: #666666">=</span> cv2<span style="color: #666666">.</span>blur(frame,(<span style="color: #666666">7</span>,<span style="color: #666666">7</span>))
 
-                  # Our operations on the frame come here
-                  frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                  thrs = 0.09
+                  <span style="color: #408080; font-style: italic"># Our operations on the frame come here</span>
+                  frame <span style="color: #666666">=</span> cv2<span style="color: #666666">.</span>cvtColor(frame, cv2<span style="color: #666666">.</span>COLOR_BGR2GRAY)
+                  thrs <span style="color: #666666">=</span> <span style="color: #666666">0.09</span>
 
-                  frame = edges(frame, thrs)
+                  frame <span style="color: #666666">=</span> edges(frame, thrs)
 
-                  frame = (frame - np.amin(frame))/(np.amax(frame)-np.amin(frame))
-                  frame[frame < 0.1] = 0
-                  if Start:
-                      bg = frame
-                      nbg = 1
-                      Start = 0
-                  if portFcn[2]:
-                      bg = frame
-                      nbg = 1
-                      print("BACKGROUND SUBTRACTED")
-                      portFcn[2] = 0
+                  frame <span style="color: #666666">=</span> (frame <span style="color: #666666">-</span> np<span style="color: #666666">.</span>amin(frame))<span style="color: #666666">/</span>(np<span style="color: #666666">.</span>amax(frame)<span style="color: #666666">-</span>np<span style="color: #666666">.</span>amin(frame))
+                  frame[frame <span style="color: #666666">&lt;</span> <span style="color: #666666">0.1</span>] <span style="color: #666666">=</span> <span style="color: #666666">0</span>
+                  <span style="color: #008000; font-weight: bold">if</span> Start:
+                      bg <span style="color: #666666">=</span> frame
+                      nbg <span style="color: #666666">=</span> <span style="color: #666666">1</span>
+                      Start <span style="color: #666666">=</span> <span style="color: #666666">0</span>
+                  <span style="color: #008000; font-weight: bold">if</span> portFcn[<span style="color: #666666">2</span>]:
+                      bg <span style="color: #666666">=</span> frame
+                      nbg <span style="color: #666666">=</span> <span style="color: #666666">1</span>
+                      <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;BACKGROUND SUBTRACTED&quot;</span>)
+                      portFcn[<span style="color: #666666">2</span>] <span style="color: #666666">=</span> <span style="color: #666666">0</span>
 
-                  if wk & 0xFF == ord('n'):
-                      bg = frame/(nbg+1) + bg*nbg/(nbg+1)
-                      nbg += 1
-                  if wk & 0xFF == ord('q'):
-                      break
+                  <span style="color: #008000; font-weight: bold">if</span> wk <span style="color: #666666">&amp;</span> <span style="color: #666666">0xFF</span> <span style="color: #666666">==</span> <span style="color: #008000">ord</span>(<span style="color: #BA2121">&#39;n&#39;</span>):
+                      bg <span style="color: #666666">=</span> frame<span style="color: #666666">/</span>(nbg<span style="color: #666666">+1</span>) <span style="color: #666666">+</span> bg<span style="color: #666666">*</span>nbg<span style="color: #666666">/</span>(nbg<span style="color: #666666">+1</span>)
+                      nbg <span style="color: #666666">+=</span> <span style="color: #666666">1</span>
+                  <span style="color: #008000; font-weight: bold">if</span> wk <span style="color: #666666">&amp;</span> <span style="color: #666666">0xFF</span> <span style="color: #666666">==</span> <span style="color: #008000">ord</span>(<span style="color: #BA2121">&#39;q&#39;</span>):
+                      <span style="color: #008000; font-weight: bold">break</span>
 
-                  if type(bg) != type(None):
-                      frame = frame - bg
-                  et = 0.5
-                  frame[frame < et] = 0
-                  frame = frame * 255
-                  frame = frame.astype(np.uint8)
-                  kernel = np.ones((3,3),np.uint8)
-                  kernel[0,0] = 0
-                  kernel[0,2] = 0
-                  kernel[2,0] = 0
-                  kernel[2,2] = 0
-                  frame = cv2.erode(frame,kernel, iterations=1)
+                  <span style="color: #008000; font-weight: bold">if</span> <span style="color: #008000">type</span>(bg) <span style="color: #666666">!=</span> <span style="color: #008000">type</span>(<span style="color: #008000; font-weight: bold">None</span>):
+                      frame <span style="color: #666666">=</span> frame <span style="color: #666666">-</span> bg
+                  et <span style="color: #666666">=</span> <span style="color: #666666">0.5</span>
+                  frame[frame <span style="color: #666666">&lt;</span> et] <span style="color: #666666">=</span> <span style="color: #666666">0</span>
+                  frame <span style="color: #666666">=</span> frame <span style="color: #666666">*</span> <span style="color: #666666">255</span>
+                  frame <span style="color: #666666">=</span> frame<span style="color: #666666">.</span>astype(np<span style="color: #666666">.</span>uint8)
+                  kernel <span style="color: #666666">=</span> np<span style="color: #666666">.</span>ones((<span style="color: #666666">3</span>,<span style="color: #666666">3</span>),np<span style="color: #666666">.</span>uint8)
+                  kernel[<span style="color: #666666">0</span>,<span style="color: #666666">0</span>] <span style="color: #666666">=</span> <span style="color: #666666">0</span>
+                  kernel[<span style="color: #666666">0</span>,<span style="color: #666666">2</span>] <span style="color: #666666">=</span> <span style="color: #666666">0</span>
+                  kernel[<span style="color: #666666">2</span>,<span style="color: #666666">0</span>] <span style="color: #666666">=</span> <span style="color: #666666">0</span>
+                  kernel[<span style="color: #666666">2</span>,<span style="color: #666666">2</span>] <span style="color: #666666">=</span> <span style="color: #666666">0</span>
+                  frame <span style="color: #666666">=</span> cv2<span style="color: #666666">.</span>erode(frame,kernel, iterations<span style="color: #666666">=1</span>)
 
-                  frame = cv2.blur(frame,(3,3))
-                  frame[frame < postthreshold] = 0
+                  frame <span style="color: #666666">=</span> cv2<span style="color: #666666">.</span>blur(frame,(<span style="color: #666666">3</span>,<span style="color: #666666">3</span>))
+                  frame[frame <span style="color: #666666">&lt;</span> postthreshold] <span style="color: #666666">=</span> <span style="color: #666666">0</span>
 
-                  f = np.zeros((frame.shape[0],frame.shape[1],3),original.dtype)
-                  f[:,:,0] = frame
-                  f[:,:,1] = frame
-                  f[:,:,2] = frame
-                  _,contours,h = cv2.findContours(frame,  cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                  f <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros((frame<span style="color: #666666">.</span>shape[<span style="color: #666666">0</span>],frame<span style="color: #666666">.</span>shape[<span style="color: #666666">1</span>],<span style="color: #666666">3</span>),original<span style="color: #666666">.</span>dtype)
+                  f[:,:,<span style="color: #666666">0</span>] <span style="color: #666666">=</span> frame
+                  f[:,:,<span style="color: #666666">1</span>] <span style="color: #666666">=</span> frame
+                  f[:,:,<span style="color: #666666">2</span>] <span style="color: #666666">=</span> frame
+                  _,contours,h <span style="color: #666666">=</span> cv2<span style="color: #666666">.</span>findContours(frame,  cv2<span style="color: #666666">.</span>RETR_TREE, cv2<span style="color: #666666">.</span>CHAIN_APPROX_SIMPLE)
 
-                  if len(contours) > 0:
-                      cnts = np.vstack([contours[i] for i in range(len(contours))])
-                      hull = cv2.convexHull(cnts)
-                      defectHull = cv2.convexHull(cnts,returnPoints=False)
-                      defects = cv2.convexityDefects(cnts, defectHull)
-                      f = cv2.drawContours(f, [hull], 0, hullColor, 5)
+                  <span style="color: #008000; font-weight: bold">if</span> <span style="color: #008000">len</span>(contours) <span style="color: #666666">&gt;</span> <span style="color: #666666">0</span>:
+                      cnts <span style="color: #666666">=</span> np<span style="color: #666666">.</span>vstack([contours[i] <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #008000">len</span>(contours))])
+                      hull <span style="color: #666666">=</span> cv2<span style="color: #666666">.</span>convexHull(cnts)
+                      defectHull <span style="color: #666666">=</span> cv2<span style="color: #666666">.</span>convexHull(cnts,returnPoints<span style="color: #666666">=</span><span style="color: #008000; font-weight: bold">False</span>)
+                      defects <span style="color: #666666">=</span> cv2<span style="color: #666666">.</span>convexityDefects(cnts, defectHull)
+                      f <span style="color: #666666">=</span> cv2<span style="color: #666666">.</span>drawContours(f, [hull], <span style="color: #666666">0</span>, hullColor, <span style="color: #666666">5</span>)
 
-                      dists = []
+                      dists <span style="color: #666666">=</span> []
 
-                      if chr(wk & 0xFF) in '12':
-                          matchContour[int(chr(wk&0xFF))] = np.copy(hull)
-                      #if portFcn[0]:
-                          #matchContour[0] = np.copy(hull)
-                          #portFcn[0] = 0
-                      if portFcn[1]:
-                          matchContour[1] = np.copy(hull)
-                          portFcn[1] = 0
-                      if type(hull) != type(None):
-                          matches = cv2.matchShapes(hull,matchContour[1],cv2.CONTOURS_MATCH_I2,0)
-                          print(matches)
-                          prevMouseEm[0] = mouseEm[0]
-                          if matches < matchThreshold:
-                              print("DRAG")
-                              mouseEm[0] = 1
-                          else:
-                              mouseEm[0] = 0
+                      <span style="color: #008000; font-weight: bold">if</span> <span style="color: #008000">chr</span>(wk <span style="color: #666666">&amp;</span> <span style="color: #666666">0xFF</span>) <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #BA2121">&#39;12&#39;</span>:
+                          matchContour[<span style="color: #008000">int</span>(<span style="color: #008000">chr</span>(wk<span style="color: #666666">&amp;0xFF</span>))] <span style="color: #666666">=</span> np<span style="color: #666666">.</span>copy(hull)
+                      <span style="color: #408080; font-style: italic">#if portFcn[0]:</span>
+                          <span style="color: #408080; font-style: italic">#matchContour[0] = np.copy(hull)</span>
+                          <span style="color: #408080; font-style: italic">#portFcn[0] = 0</span>
+                      <span style="color: #008000; font-weight: bold">if</span> portFcn[<span style="color: #666666">1</span>]:
+                          matchContour[<span style="color: #666666">1</span>] <span style="color: #666666">=</span> np<span style="color: #666666">.</span>copy(hull)
+                          portFcn[<span style="color: #666666">1</span>] <span style="color: #666666">=</span> <span style="color: #666666">0</span>
+                      <span style="color: #008000; font-weight: bold">if</span> <span style="color: #008000">type</span>(hull) <span style="color: #666666">!=</span> <span style="color: #008000">type</span>(<span style="color: #008000; font-weight: bold">None</span>):
+                          matches <span style="color: #666666">=</span> cv2<span style="color: #666666">.</span>matchShapes(hull,matchContour[<span style="color: #666666">1</span>],cv2<span style="color: #666666">.</span>CONTOURS_MATCH_I2,<span style="color: #666666">0</span>)
+                          <span style="color: #008000">print</span>(matches)
+                          prevMouseEm[<span style="color: #666666">0</span>] <span style="color: #666666">=</span> mouseEm[<span style="color: #666666">0</span>]
+                          <span style="color: #008000; font-weight: bold">if</span> matches <span style="color: #666666">&lt;</span> matchThreshold:
+                              <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;DRAG&quot;</span>)
+                              mouseEm[<span style="color: #666666">0</span>] <span style="color: #666666">=</span> <span style="color: #666666">1</span>
+                          <span style="color: #008000; font-weight: bold">else</span>:
+                              mouseEm[<span style="color: #666666">0</span>] <span style="color: #666666">=</span> <span style="color: #666666">0</span>
 
-                  M = cv2.moments(frame)
-                  if M['m00'] != 0:
-                      cx = int(M['m10']/M['m00'])
-                      cy = int(M['m01']/M['m00'])
+                  M <span style="color: #666666">=</span> cv2<span style="color: #666666">.</span>moments(frame)
+                  <span style="color: #008000; font-weight: bold">if</span> M[<span style="color: #BA2121">&#39;m00&#39;</span>] <span style="color: #666666">!=</span> <span style="color: #666666">0</span>:
+                      cx <span style="color: #666666">=</span> <span style="color: #008000">int</span>(M[<span style="color: #BA2121">&#39;m10&#39;</span>]<span style="color: #666666">/</span>M[<span style="color: #BA2121">&#39;m00&#39;</span>])
+                      cy <span style="color: #666666">=</span> <span style="color: #008000">int</span>(M[<span style="color: #BA2121">&#39;m01&#39;</span>]<span style="color: #666666">/</span>M[<span style="color: #BA2121">&#39;m00&#39;</span>])
 
-                  # display frame
-                  f = cv2.resize(f, (160*4,120*4), fx=0, fy=0, interpolation = cv2.INTER_NEAREST)
-                  cv2.imwrite('tmp.jpg',f)
-                  f = pygame.image.load('tmp.jpg')
-                  f = pygame.transform.scale(f, (320, 240))
-                  f = pygame.transform.flip(f,0,1)
+                  <span style="color: #408080; font-style: italic"># display frame</span>
+                  f <span style="color: #666666">=</span> cv2<span style="color: #666666">.</span>resize(f, (<span style="color: #666666">160*4</span>,<span style="color: #666666">120*4</span>), fx<span style="color: #666666">=0</span>, fy<span style="color: #666666">=0</span>, interpolation <span style="color: #666666">=</span> cv2<span style="color: #666666">.</span>INTER_NEAREST)
+                  cv2<span style="color: #666666">.</span>imwrite(<span style="color: #BA2121">&#39;tmp.jpg&#39;</span>,f)
+                  f <span style="color: #666666">=</span> pygame<span style="color: #666666">.</span>image<span style="color: #666666">.</span>load(<span style="color: #BA2121">&#39;tmp.jpg&#39;</span>)
+                  f <span style="color: #666666">=</span> pygame<span style="color: #666666">.</span>transform<span style="color: #666666">.</span>scale(f, (<span style="color: #666666">320</span>, <span style="color: #666666">240</span>))
+                  f <span style="color: #666666">=</span> pygame<span style="color: #666666">.</span>transform<span style="color: #666666">.</span>flip(f,<span style="color: #666666">0</span>,<span style="color: #666666">1</span>)
 
-                  rawCapture.truncate(0)
+                  rawCapture<span style="color: #666666">.</span>truncate(<span style="color: #666666">0</span>)
 
-                  screen.blit(f, [0,0])
-                  pygame.display.flip()
+                  screen<span style="color: #666666">.</span>blit(f, [<span style="color: #666666">0</span>,<span style="color: #666666">0</span>])
+                  pygame<span style="color: #666666">.</span>display<span style="color: #666666">.</span>flip()
 
-                  if portFcn[0] == 1:
-                      continue
+                  <span style="color: #008000; font-weight: bold">if</span> portFcn[<span style="color: #666666">0</span>] <span style="color: #666666">==</span> <span style="color: #666666">1</span>:
+                      <span style="color: #008000; font-weight: bold">continue</span>
 
-                  #Check jump
-                  if abs(prevMouseEm[2]) > 100 or abs(prevMouseEm[1]) > 100 or prevMouseEm[0] != mouseEm[0] or len(contours) == 0:
-                      rx = 0
-                      ry = 0
-                  else:
-                      rx = cx - cxp
-                      ry = cy - cyp
-                  if abs(rx)  > 100 or abs(ry) > 100:
-                      rx = 0
-                      ry = 0
-                  cxp = cx
-                  cyp = cy
-                  prevMouseEm[1] = mouseEm[1]
-                  prevMouseEm[2] = mouseEm[2]
-                  if rx != 0:
-                      #mouseEm[1] = abs(rx**2.5)*(rx/abs(rx))
-                      mouseEm[1] = rx*15
+                  <span style="color: #408080; font-style: italic">#Check jump</span>
+                  <span style="color: #008000; font-weight: bold">if</span> <span style="color: #008000">abs</span>(prevMouseEm[<span style="color: #666666">2</span>]) <span style="color: #666666">&gt;</span> <span style="color: #666666">100</span> <span style="color: #AA22FF; font-weight: bold">or</span> <span style="color: #008000">abs</span>(prevMouseEm[<span style="color: #666666">1</span>]) <span style="color: #666666">&gt;</span> <span style="color: #666666">100</span> <span style="color: #AA22FF; font-weight: bold">or</span> prevMouseEm[<span style="color: #666666">0</span>] <span style="color: #666666">!=</span> mouseEm[<span style="color: #666666">0</span>] <span style="color: #AA22FF; font-weight: bold">or</span> <span style="color: #008000">len</span>(contours) <span style="color: #666666">==</span> <span style="color: #666666">0</span>:
+                      rx <span style="color: #666666">=</span> <span style="color: #666666">0</span>
+                      ry <span style="color: #666666">=</span> <span style="color: #666666">0</span>
+                  <span style="color: #008000; font-weight: bold">else</span>:
+                      rx <span style="color: #666666">=</span> cx <span style="color: #666666">-</span> cxp
+                      ry <span style="color: #666666">=</span> cy <span style="color: #666666">-</span> cyp
+                  <span style="color: #008000; font-weight: bold">if</span> <span style="color: #008000">abs</span>(rx)  <span style="color: #666666">&gt;</span> <span style="color: #666666">100</span> <span style="color: #AA22FF; font-weight: bold">or</span> <span style="color: #008000">abs</span>(ry) <span style="color: #666666">&gt;</span> <span style="color: #666666">100</span>:
+                      rx <span style="color: #666666">=</span> <span style="color: #666666">0</span>
+                      ry <span style="color: #666666">=</span> <span style="color: #666666">0</span>
+                  cxp <span style="color: #666666">=</span> cx
+                  cyp <span style="color: #666666">=</span> cy
+                  prevMouseEm[<span style="color: #666666">1</span>] <span style="color: #666666">=</span> mouseEm[<span style="color: #666666">1</span>]
+                  prevMouseEm[<span style="color: #666666">2</span>] <span style="color: #666666">=</span> mouseEm[<span style="color: #666666">2</span>]
+                  <span style="color: #008000; font-weight: bold">if</span> rx <span style="color: #666666">!=</span> <span style="color: #666666">0</span>:
+                      <span style="color: #408080; font-style: italic">#mouseEm[1] = abs(rx**2.5)*(rx/abs(rx))</span>
+                      mouseEm[<span style="color: #666666">1</span>] <span style="color: #666666">=</span> rx<span style="color: #666666">*15</span>
 
-                  else:
-                      mouseEm[1] = 0
-                  if ry != 0:
-                      #mouseEm[2] = -abs(ry**2.5)*(ry/abs(ry))
-                      mouseEm[2] = -ry*30
-                  else:
-                      mouseEm[2] = 0
-                  mouseL[1:,:] = mouseL[0:(mouseL_len-1),:]
-                  mouseL[0,:] = mouseEm[:]
-                  print(mouseL)
-                  mouseEm1 = np.mean(mouseL, axis=0).astype(np.int16)
-                  if len(np.unique(mouseL[:,0])) != 1:
-                      print('CLICKING')
-                      mouseEm1[1] = 0
-                      mouseEm1[2] = 0
+                  <span style="color: #008000; font-weight: bold">else</span>:
+                      mouseEm[<span style="color: #666666">1</span>] <span style="color: #666666">=</span> <span style="color: #666666">0</span>
+                  <span style="color: #008000; font-weight: bold">if</span> ry <span style="color: #666666">!=</span> <span style="color: #666666">0</span>:
+                      <span style="color: #408080; font-style: italic">#mouseEm[2] = -abs(ry**2.5)*(ry/abs(ry))</span>
+                      mouseEm[<span style="color: #666666">2</span>] <span style="color: #666666">=</span> <span style="color: #666666">-</span>ry<span style="color: #666666">*30</span>
+                  <span style="color: #008000; font-weight: bold">else</span>:
+                      mouseEm[<span style="color: #666666">2</span>] <span style="color: #666666">=</span> <span style="color: #666666">0</span>
+                  mouseL[<span style="color: #666666">1</span>:,:] <span style="color: #666666">=</span> mouseL[<span style="color: #666666">0</span>:(mouseL_len<span style="color: #666666">-1</span>),:]
+                  mouseL[<span style="color: #666666">0</span>,:] <span style="color: #666666">=</span> mouseEm[:]
+                  <span style="color: #008000">print</span>(mouseL)
+                  mouseEm1 <span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean(mouseL, axis<span style="color: #666666">=0</span>)<span style="color: #666666">.</span>astype(np<span style="color: #666666">.</span>int16)
+                  <span style="color: #008000; font-weight: bold">if</span> <span style="color: #008000">len</span>(np<span style="color: #666666">.</span>unique(mouseL[:,<span style="color: #666666">0</span>])) <span style="color: #666666">!=</span> <span style="color: #666666">1</span>:
+                      <span style="color: #008000">print</span>(<span style="color: #BA2121">&#39;CLICKING&#39;</span>)
+                      mouseEm1[<span style="color: #666666">1</span>] <span style="color: #666666">=</span> <span style="color: #666666">0</span>
+                      mouseEm1[<span style="color: #666666">2</span>] <span style="color: #666666">=</span> <span style="color: #666666">0</span>
 
-                  if int(mouseEm1[0]) == 1:
-                      hullColor = (0,255,0)
-                  else:
-                      hullColor = (0,0,255)
+                  <span style="color: #008000; font-weight: bold">if</span> <span style="color: #008000">int</span>(mouseEm1[<span style="color: #666666">0</span>]) <span style="color: #666666">==</span> <span style="color: #666666">1</span>:
+                      hullColor <span style="color: #666666">=</span> (<span style="color: #666666">0</span>,<span style="color: #666666">255</span>,<span style="color: #666666">0</span>)
+                  <span style="color: #008000; font-weight: bold">else</span>:
+                      hullColor <span style="color: #666666">=</span> (<span style="color: #666666">0</span>,<span style="color: #666666">0</span>,<span style="color: #666666">255</span>)
 
-                  # Send the compiled mouse emulation information over the Bluetooth link
-                  send_state(dev, mouseEm1[0], mouseEm1[1], mouseEm1[2])
+                  <span style="color: #408080; font-style: italic"># Send the compiled mouse emulation information over the Bluetooth link</span>
+                  send_state(dev, mouseEm1[<span style="color: #666666">0</span>], mouseEm1[<span style="color: #666666">1</span>], mouseEm1[<span style="color: #666666">2</span>])
 
-              # Release the capture
-              cap.release()
-              cv2.destroyAllWindows()
-              </code></pre>
+              <span style="color: #408080; font-style: italic"># Release the capture</span>
+              cap<span style="color: #666666">.</span>release()
+              cv2<span style="color: #666666">.</span>destroyAllWindows()
+</pre></div>
+
         </div>
     </div>
     <!-- /.container -->
