@@ -89,6 +89,8 @@
               We also wanted to leverage the Bluetooth capability of the Raspberry Pi. Our project tricks a host computer into thinking that the Raspberry Pi is a Bluetooth mouse. Using this scheme, the mouse on any Bluetooth-enabled desktop computer or laptop can be controlled using hand movements.
               <br><br>
               Towards a more organic setup, we wanted to do minimize background control. A simple solution to avoid having to process a noisy background is to point the camera upwards. Weand the image of the blank ceiling is stored, and removed from all of the successive frames. Each frame is processed to detect the hand, and which of two gestures that the user is making. The motion of the hand, and the gestures are analyzed to send Bluetooth mouse commands to a remote machine.
+              <br><br>
+              <img class="center-block" src="pics/fullsetup.png" alt="Our Edge Detection Process" style="width:60%;">
             </p>
         </div>
 
@@ -132,20 +134,11 @@
                 <h3>Image Processing Methods</h3>
                 <br> We started the process of mapping hand movements to mouse gestures by first attempting to identify a hand in an arbitrary environment. This task was much more difficult than we had expected, and eventually we constrained ourselves to identifying the user’s hand in front of a static background. However, we first explored a number of options for hand identification. We started by exploring various edge detection operations, finding the most success with the Sobel operator. We also explored the Laplacian operator, but found it produced significantly more noise.
                 <br>
-                <br> [Laplacian and Sobel kernels]
-                <br>
-                <br> [Side by side sobel comparison]
-                <br>
                 <br> We used OpenCV to find edges in the input image, with the <a href="https://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_gradients/py_gradients.html"> OpenCV Sobel() function </a> and a kernel size of 1, in each orientation. We then used the magnitude of the gradient in both orientations to generate a simple edge image. After exploring other operations before and after applying the Sobel operation, we found the best results by applying the following sequence of operations.
                 <br>
                 <br>
 
                 <img class="center-block" src="pics/edge_detection_process.png" alt="Our Edge Detection Process" style="width:60%;">
-                <br>
-                <br> [Code reference]
-                <br>
-                <br>
-
                 <br>
                 <br> With Sobel edge detection, we had an effective method of finding the outline of a hand, but still no method of finding the hand itself. After doing some research, we attempted using color to identify a user’s hand. To do this, we set a button which, when pressed, would use a simple region growing method with two thresholds to identify the region at the center of the image. To use this method, the user would position their hand in the center of the screen, then press the button. Starting at the center of the image, the algorithm would check each neighbor, and ensure that the pixel intensities were within a small threshold to their neighbor and within a large threshold to the original, center pixel. This method worked reasonably well, and by averaging the region found with the region growing algorithm, we could find a good estimate for the user’s skin color. However, this introduced a new problem which we had suspected that we would encounter. The user’s face would often interfere with this method, which encouraged us to look at other techniques.
                 <br>
@@ -156,7 +149,7 @@
                 <br> We attempted to use a similar algorithm, but one which used edges generated not from a grayscale image, but from each of the hue, saturation, and value representation of the image. The idea behind this strategy was that hue segmentation/edges would separate the user from the background, and that saturation/value would separate the hand from the face, since the lighting was slightly different on each part of the body. While this seemed promising at first, it was unreliable in different lighting, and had highly variable performance. [Code reference]
                 <br>
                 <br>
-                <br> Our last attempt to distinguish a user’s hand from an arbitrary background was using depth detection, under the assumption that in general, the user’s hand would be closer to the camera than any other objects in the frame. We used a variety of techniques included in OpenCV, but found quickly that it was very difficult to align two cameras to act as a stereo camera, as we had planned. In the end, we found that there was too much noise in our camera setup to validate depth detection, and we decided to change our approach. [Code reference]
+                Our last attempt to distinguish a user’s hand from an arbitrary background was using depth detection, under the assumption that in general, the user’s hand would be closer to the camera than any other objects in the frame. We used a variety of techniques included in OpenCV, but found quickly that it was very difficult to align two cameras to act as a stereo camera, as we had planned. In the end, we found that there was too much noise in our camera setup to validate depth detection, and we decided to change our approach. [Code reference]
                 <br>
                 <br> After researching the <a href="https://www.leapmotion.com/">Leap Motion Controller,</a> a product similar to the system we were trying to produce, we decide to try putting the camera below the user’s hand facing up, instead of in front of the user facing them. Our edge detection algorithm worked well in this situation, especially since the ceiling was unchanging compared to when the background had included more of the user than their hand. To solve the issue of edges included in the background, we used background subtraction. [Code listing] On startup, our system would record a frame of the background without the user in it. It would then compute an edge image in the same way as described above, and would subtract that image from each new edge image generated from frame captures from the camera. This removed almost all edge artifacts from the background.
                 <br>
@@ -206,8 +199,11 @@
                 <br>
 
                 We found that our system performs best when moving the mouse with an open hand gesture, and clicking by pointing the index finger. These two gestures are far enough apart form each other that their convex hulls (characterized by a heptagon and triangle, respectively) can robustly identify each gesture state.
-                <br>
-
+                <br><br>
+                <img class="center-block" src="pics/hull.png" alt="Our Edge Detection Process" style="width:40%;">
+                <p style="text-align: center;padding: 0px 0px;">
+                <em>Convex hull bounding a "move mouse" gesture</em>
+                <p style="text-align: left;padding: 0px 0px;">
                 <h3 align="left">Emulating A Mouse Over Bluetooth</h3> Once we settled on a gesture identification method, we moved on to implementing Bluetooth mouse emulation. We did so by building on <a href="https://github.com/mlabviet/BL_keyboard_RPI">a GitHub project </a>, and by consulting a number of references (We found support for emulating a Bluetooth keyboard, but much less for mouse emulation). After some research, we set up a Bluetooth mouse emulation server using DBus, which would allow another Python script or other entity to set mouse button press information and relative horizontal and vertical movement. [Code Listing] We added these calls to the code which managed the PiCamera image processing, and were able to control the mouse of a different device by moving a hand in from of the PiCam.
                 <br>
                 <br>
@@ -243,9 +239,16 @@
             <h2>Implementation</h2>
             <p style="text-align: justify;padding: 0px 0px;">
                 Our final demonstration system was implemented with a Raspberry Pi, PiCam, and PiTFT. When the user powers on the system, the applications starts immediately, and performs background subtraction to compensate for whatever background it is facing.
+                <br><br><img class="center-block" src="pics/working.png" alt="Working System" style="width:60%;">
+
                 <br><br>
                 <em><strong>SET CLICK GESTURE (BUTTON 22)</strong></em>
                 - The user can press button 22 on the PiTFT to designate a gesture as the "click" or "mouse down" state. Once set, the convex hull will turn green to indicate that a click state has been detected.
+                <img class="center-block" src="pics/greenhull.png" alt="The convex hull turns green upon click gesture detection" style="width:40%;">
+                <p style="text-align: center;padding: 0px 0px;">
+                <em>The convex hull turns green upon click gesture detection</em>
+                <p style="text-align: left;padding: 0px 0px;">
+
                 <br><br>
                 <em><strong>RESET BACKGROUND SUBTRACTION (BUTTON 23)</strong></em>
                 - If the camera placement has been perturbed since program start, the image on the PiTFT may show residual edges consistent with the background. Pressing button 23 on the PiTFT will reset the background image based on the new camera placement. Users should take care not to let any part of their body enter the frame as the new background is recorded.
@@ -255,11 +258,7 @@
                 <br><br>
                 <em><strong>BAILOUT (BUTTON 27)</strong></em>
                 - The script will exit upon button press.
-                <br>
-                <br>
-
-                <img class="center-block" src="pics/system.jpg" alt="Working System" style="width:80%;">
-                <br>
+                  <br>
                 <br>
 
             </p>
@@ -296,7 +295,11 @@
                   <h4>Upward Camera Placement</h4>
                     When we decided to orient the camera upwards, we needed a way to remove edges in the background from the image. We did so by capture a frame on startup, and subtracting the edge image of that frame from every subsequent image. This method of background subtraction sometimes removed edges of the hand that were overlaid on edges of the background, but worked well for our purposes. After experimenting with different hand tracking methods, we found that tracking the center of mass of the edge image worked well enough for controlling mouse movement; only later did we have some problems when we introduced clicking.
                     <br><br>
-
+                    <img class="center-block" src="pics/up.png" alt="Our Edge Detection Process" style="width:40%;">
+                    <p style="text-align: center;padding: 0px 0px;">
+                    <em>Upward camera placement resulted in easier background removal</em>
+                    <p style="text-align: left;padding: 0px 0px;">
+                      <br>
                   <h4>Gesture Classification with Polygon Matching</h4>
                     Our shape matching gesture detection system worked well after we had constrained ourselves to certain gestures.
                     <br><br>
@@ -349,7 +352,7 @@
 
         <hr>
         <div style="font-size:18px">
-            <h2>Parts List</h2>
+            <h2>Bill of Materials</h2>
             <ul>
                 <li>Raspberry Pi $35.00</li>
                 <li>Raspberry Pi Camera Module V2 $25.00</li>
@@ -363,7 +366,11 @@
             <h2>References</h2>
             <a href="https://picamera.readthedocs.io/">PiCamera Document</a>
             <br>
-
+            <a href="https://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_gradients/py_gradients.html"> OpenCV Sobel Filtering Documentation </a>
+            <br>
+            <a href="https://github.com/mlabviet/BL_keyboard_RPI">Keyboard Emulation GitHub Project</a>
+            <br>
+            <a href="https://www.pyimagesearch.com/2017/10/09/optimizing-opencv-on-the-raspberry-pi/"> OpenCV Optimization </a>
         </div>
 
         <hr>
